@@ -22,3 +22,10 @@ Thumbs.db
 
 # Puppeteer local cache
 backend/.local-chromium/
+
+# WhatsApp Web session data (sensitive auth tokens + Chromium browser cache)
+backend/data/
+backend/.wwebjs_cache/
+
+# Uploaded media files
+backend/uploads/

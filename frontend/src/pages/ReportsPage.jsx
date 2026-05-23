@@ -1,6 +1,17 @@
 import { useState } from 'react';
 import api from '../services/api';
 
+function StatusPill({ status }) {
+  const active = status === 'online' || status === 'active';
+  return (
+    <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${
+      active ? 'bg-ms-green-bg text-ms-green' : 'bg-ms-red-bg text-[#a80000]'
+    }`}>
+      {active ? 'Active' : 'Inactive'}
+    </span>
+  );
+}
+
 const REPORTS = [
   { id: 'overview',  icon: '📊', title: 'Business Overview',  desc: 'Total clients, status breakdown, active rate, recent alerts and sync history.' },
   { id: 'clients',   icon: '👥', title: 'Full Client Roster', desc: 'All clients with username, status, profile, group, expiry and last seen.', csv: true },
@@ -32,40 +43,40 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="p-6 max-w-5xl">
+    <div className="p-3 sm:p-6 max-w-5xl">
       <div className="mb-6">
-        <h1 className="font-display font-bold text-2xl text-white tracking-tight">Reports</h1>
-        <p className="text-muted text-sm mt-0.5">Generate reports from your live BMS data</p>
+        <h1 className="font-semibold text-2xl text-ms-text tracking-tight">Reports</h1>
+        <p className="text-ms-sub text-sm mt-0.5">Generate reports from your live BMS data</p>
       </div>
 
       {/* Report cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         {REPORTS.map(r => (
-          <div key={r.id} className={`card p-4 cursor-pointer transition-all hover:-translate-y-0.5 border ${active === r.id ? 'border-accent/40' : 'border-white/[0.06] hover:border-white/10'}`}
+          <div key={r.id}
+            className={`ms-card p-4 cursor-pointer transition-all hover:shadow-ms-md border-l-2 ${active === r.id ? 'border-l-ms-blue' : 'border-l-transparent'}`}
             onClick={() => run(r.id)}>
             <div className="flex items-start gap-3">
               <span className="text-2xl">{r.icon}</span>
               <div className="flex-1 min-w-0">
-                <div className="font-display font-semibold text-sm text-white mb-1">{r.title}</div>
-                <div className="text-xs text-dim leading-relaxed">{r.desc}</div>
+                <div className="font-semibold text-sm text-ms-text mb-1">{r.title}</div>
+                <div className="text-xs text-ms-dim leading-relaxed">{r.desc}</div>
               </div>
               <div className="flex-shrink-0">
                 {loading[r.id]
-                  ? <span className="w-4 h-4 border border-white/20 border-t-accent rounded-full animate-spin inline-block" />
-                  : <span className="text-xs text-accent">Run →</span>}
+                  ? <span className="w-4 h-4 border border-ms-border border-t-ms-blue rounded-full animate-spin inline-block" />
+                  : <span className="text-xs text-ms-blue font-semibold">Run →</span>}
               </div>
             </div>
             {r.csv && (
               <button onClick={e => { e.stopPropagation(); downloadCsv(); }}
-                className="mt-3 text-[11px] text-dim hover:text-white transition-colors">
-                ⬇ Download CSV
+                className="mt-3 text-[11px] text-ms-blue hover:underline">
+                Download CSV
               </button>
             )}
           </div>
         ))}
       </div>
 
-      {/* Result panel */}
       {result && active && <ReportResult id={active} data={result} />}
     </div>
   );
@@ -75,26 +86,26 @@ function ReportResult({ id, data }) {
   if (id === 'overview') {
     const r = data.report;
     return (
-      <div className="card p-5">
+      <div className="ms-card p-5">
         <div className="flex items-center justify-between mb-4">
-          <span className="font-display font-semibold text-white">Business Overview</span>
-          <span className="text-xs text-dim">{new Date(r.generatedAt).toLocaleString()}</span>
+          <span className="font-semibold text-ms-text">Business Overview</span>
+          <span className="text-xs text-ms-dim">{new Date(r.generatedAt).toLocaleString()}</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-5">
           {Object.entries(r.summary).map(([k, v]) => (
-            <div key={k} className="card-sm p-3 text-center">
-              <div className="font-display font-bold text-xl text-white">{v}</div>
-              <div className="text-[10px] text-dim capitalize mt-0.5">{k.replace(/([A-Z])/g,' $1')}</div>
+            <div key={k} className="bg-ms-sidebar border border-ms-border rounded p-3 text-center">
+              <div className="font-semibold text-xl text-ms-text">{v}</div>
+              <div className="text-[10px] text-ms-dim capitalize mt-0.5">{k.replace(/([A-Z])/g,' $1')}</div>
             </div>
           ))}
         </div>
         {r.recentAlerts.length > 0 && (
           <div>
-            <div className="text-xs text-dim uppercase tracking-wider mb-2">Recent alerts</div>
+            <div className="text-xs text-ms-dim font-semibold uppercase tracking-wider mb-2">Recent alerts</div>
             <div className="space-y-1">
               {r.recentAlerts.map(a => (
-                <div key={a._id} className="text-sm text-muted flex gap-2">
-                  <span className={`text-[10px] font-bold uppercase ${a.sev==='critical'?'text-danger':a.sev==='warning'?'text-warn':a.sev==='ok'?'text-teal':'text-accent'}`}>{a.sev}</span>
+                <div key={a._id} className="text-sm text-ms-sub flex gap-2">
+                  <span className={`text-[10px] font-bold uppercase ${a.sev==='critical'?'text-ms-red':a.sev==='warning'?'text-ms-orange':a.sev==='ok'?'text-ms-green':'text-ms-blue'}`}>{a.sev}</span>
                   <span>{a.title}</span>
                 </div>
               ))}
@@ -107,59 +118,87 @@ function ReportResult({ id, data }) {
 
   if (id === 'expiry') {
     const r = data.report;
+    const groups = [
+      { label: 'Within 7 days',  list: r.within7,  cls: 'text-ms-red',    bg: 'bg-ms-red-bg' },
+      { label: '8–14 days',      list: r.within14, cls: 'text-ms-orange',  bg: 'bg-ms-orange-bg' },
+      { label: '15–30 days',     list: r.within30, cls: 'text-ms-sub',     bg: 'bg-ms-sidebar' },
+    ];
     return (
-      <div className="card p-5 space-y-4">
-        <div className="font-display font-semibold text-white">Expiry Forecast</div>
-        {[['Within 7 days', r.within7, 'text-danger'], ['8–14 days', r.within14, 'text-warn'], ['15–30 days', r.within30, 'text-dim']].map(([label, list, cls]) => (
-          <div key={label}>
-            <div className={`text-xs font-medium mb-2 ${cls}`}>{label} — {list.length} accounts</div>
-            {list.length ? (
-              <div className="space-y-1">
-                {list.slice(0,5).map(c => (
-                  <div key={c._id} className="flex items-center gap-3 text-sm">
-                    <span className="text-white">{c.name || c.username}</span>
-                    <span className="text-dim text-xs">{c.expiry}</span>
-                  </div>
-                ))}
-                {list.length > 5 && <div className="text-xs text-dim">+{list.length-5} more</div>}
+      <div className="ms-card overflow-hidden">
+        <div className="px-5 py-3 border-b border-ms-border flex items-center justify-between">
+          <span className="font-semibold text-ms-text">Expiry Forecast</span>
+          <span className="text-xs text-ms-dim">{r.within7.length + r.within14.length + r.within30.length} total accounts</span>
+        </div>
+        <div className="divide-y divide-ms-border">
+          {groups.map(({ label, list, cls, bg }) => (
+            <div key={label}>
+              <div className={`px-5 py-2.5 flex items-center justify-between ${bg}`}>
+                <span className={`text-xs font-bold uppercase tracking-wider ${cls}`}>{label}</span>
+                <span className={`text-xs font-semibold ${cls}`}>{list.length} account{list.length !== 1 ? 's' : ''}</span>
               </div>
-            ) : <div className="text-xs text-dim">None</div>}
-          </div>
-        ))}
+              {list.length === 0 ? (
+                <div className="px-5 py-3 text-xs text-ms-dim">None</div>
+              ) : (
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-ms-sidebar border-b border-ms-border">
+                      {['#','Name','Username','Service','Expiry','Phone','Status'].map(h => (
+                        <th key={h} className="text-left px-4 py-2 text-[11px] text-ms-dim font-semibold uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-ms-border">
+                    {list.map((c, i) => (
+                      <tr key={c._id} className="hover:bg-ms-sidebar transition-colors">
+                        <td className="px-4 py-2 text-xs text-ms-dim">{i + 1}</td>
+                        <td className="px-4 py-2 text-sm text-ms-text font-medium whitespace-nowrap">{c.name || '—'}</td>
+                        <td className="px-4 py-2 text-xs text-ms-sub font-mono">{c.username}</td>
+                        <td className="px-4 py-2 text-xs text-ms-sub">{c.profile || '—'}</td>
+                        <td className={`px-4 py-2 text-xs font-semibold whitespace-nowrap ${cls}`}>{c.expiry || '—'}</td>
+                        <td className="px-4 py-2 text-xs text-ms-sub font-mono">{c.phone || c.mobile || '—'}</td>
+                        <td className="px-4 py-2"><StatusPill status={c.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
 
-  // clients / inactive: table
   const list = data.clients || [];
   return (
-    <div className="card overflow-hidden">
-      <div className="px-4 py-3 border-b border-white/[0.05] flex items-center justify-between">
-        <span className="font-display font-semibold text-sm text-white">{list.length} records</span>
-        <span className="text-xs text-dim">{new Date(data.generatedAt).toLocaleString()}</span>
+    <div className="ms-card overflow-hidden">
+      <div className="px-4 py-3 border-b border-ms-border flex items-center justify-between">
+        <span className="font-semibold text-sm text-ms-text">{list.length} records</span>
+        <span className="text-xs text-ms-dim">{new Date(data.generatedAt).toLocaleString()}</span>
       </div>
-      <div className="overflow-x-auto max-h-80">
+      <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="sticky top-0 bg-s2">
-            <tr>{['Name','Username','Status','Group','Expiry','Last Seen'].map(h => (
-              <th key={h} className="text-left px-3 py-2 text-[10px] text-dim uppercase tracking-wider">{h}</th>
+          <thead className="sticky top-0 bg-ms-sidebar">
+            <tr>{['#','Name','Username','Status','Service','Expiry','Phone','Last Seen'].map(h => (
+              <th key={h} className="text-left px-3 py-2 text-xs text-ms-dim font-semibold uppercase tracking-wider whitespace-nowrap">{h}</th>
             ))}</tr>
           </thead>
-          <tbody className="divide-y divide-white/[0.03]">
-            {list.slice(0,50).map(c => (
-              <tr key={c._id}>
-                <td className="px-3 py-2 text-xs text-white">{c.name||'—'}</td>
-                <td className="px-3 py-2 text-xs text-dim font-mono">{c.username}</td>
-                <td className="px-3 py-2"><span className={`pill-${c.status}`}>{c.status}</span></td>
-                <td className="px-3 py-2 text-xs text-dim">{c.group||'—'}</td>
-                <td className="px-3 py-2 text-xs text-dim">{c.expiry||'—'}</td>
-                <td className="px-3 py-2 text-xs text-dim">{c.lastSeen||'—'}</td>
+          <tbody className="divide-y divide-ms-border">
+            {list.map((c, i) => (
+              <tr key={c._id} className="hover:bg-ms-sidebar transition-colors">
+                <td className="px-3 py-2 text-xs text-ms-dim">{i + 1}</td>
+                <td className="px-3 py-2 text-xs text-ms-text font-medium whitespace-nowrap">{c.name||'—'}</td>
+                <td className="px-3 py-2 text-xs text-ms-sub font-mono">{c.username}</td>
+                <td className="px-3 py-2"><StatusPill status={c.status} /></td>
+                <td className="px-3 py-2 text-xs text-ms-sub">{c.profile||'—'}</td>
+                <td className="px-3 py-2 text-xs text-ms-sub whitespace-nowrap">{c.expiry||'—'}</td>
+                <td className="px-3 py-2 text-xs text-ms-sub font-mono">{c.phone||c.mobile||'—'}</td>
+                <td className="px-3 py-2 text-xs text-ms-sub whitespace-nowrap">{c.lastSeen||'—'}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {list.length > 50 && <div className="px-4 py-2 text-xs text-dim border-t border-white/[0.05]">Showing 50 of {list.length}. Download CSV for full list.</div>}
     </div>
   );
 }

@@ -3,27 +3,33 @@
 @tailwind utilities;
 
 @layer base {
-  html { @apply bg-ink text-white; }
+  html { @apply bg-ms-bg text-ms-text; }
   body { @apply font-sans antialiased; }
   * { @apply box-border; }
-  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { @apply bg-white/10 rounded; }
+  ::-webkit-scrollbar-thumb { @apply bg-ms-border rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-ms-dim; }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
 
 @layer components {
-  .card       { @apply bg-surface border border-white/[0.06] rounded-xl; }
-  .card-sm    { @apply bg-s2 border border-white/[0.05] rounded-lg; }
-  .input      { @apply bg-s3 border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-white placeholder-dim outline-none focus:border-accent/50 transition-colors w-full; }
-  .btn-primary { @apply bg-accent hover:bg-accent/90 text-white font-medium text-sm rounded-lg px-4 py-2 transition-all active:scale-95 cursor-pointer border-0; }
-  .btn-ghost  { @apply bg-s3 hover:bg-s2 text-muted hover:text-white text-sm rounded-lg px-4 py-2 transition-all border border-white/[0.07] cursor-pointer; }
-  .btn-danger { @apply bg-danger/10 hover:bg-danger/20 text-danger text-sm rounded-lg px-4 py-2 transition-all border border-danger/20 cursor-pointer; }
-  .pill-active   { @apply inline-flex items-center gap-1 text-teal   bg-teal/10   text-[10px] font-medium px-2 py-0.5 rounded-full before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-teal; }
-  .pill-inactive { @apply inline-flex items-center gap-1 text-danger  bg-danger/10  text-[10px] font-medium px-2 py-0.5 rounded-full before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-danger; }
-  .pill-pending  { @apply inline-flex items-center gap-1 text-warn   bg-warn/10   text-[10px] font-medium px-2 py-0.5 rounded-full before:content-[''] before:w-1.5 before:h-1.5 before:rounded-full before:bg-warn; }
-  .pill-expired  { @apply inline-flex items-center gap-1 text-dim    bg-white/5   text-[10px] font-medium px-2 py-0.5 rounded-full; }
-  .sev-critical  { @apply border-l-danger; }
-  .sev-warning   { @apply border-l-warn; }
-  .sev-info      { @apply border-l-accent; }
-  .sev-ok        { @apply border-l-teal; }
+  .ms-card    { @apply bg-ms-surface border border-ms-border rounded shadow-ms; }
+  .ms-input   { @apply bg-ms-surface border border-ms-border rounded px-3 py-2 text-sm text-ms-text placeholder-ms-dim outline-none focus:border-ms-blue focus:ring-1 focus:ring-ms-blue transition-all w-full; }
+  .ms-btn     { @apply bg-ms-blue hover:bg-ms-blue-dark text-white font-semibold text-sm rounded px-4 py-2 transition-colors cursor-pointer border-0 disabled:opacity-50 disabled:cursor-not-allowed; }
+  .ms-btn-outline { @apply bg-ms-surface hover:bg-ms-sidebar text-ms-blue border border-ms-blue text-sm font-semibold rounded px-4 py-2 transition-colors cursor-pointer; }
+  .ms-btn-ghost   { @apply bg-transparent hover:bg-ms-sidebar text-ms-sub hover:text-ms-text text-sm rounded px-4 py-2 transition-colors cursor-pointer border-0; }
+
+  .pill-online   { @apply inline-flex items-center gap-1.5 text-ms-green   bg-ms-green-bg  text-xs font-semibold px-2 py-0.5 rounded-sm; }
+  .pill-active   { @apply inline-flex items-center gap-1.5 text-ms-blue    bg-ms-blue-light text-xs font-semibold px-2 py-0.5 rounded-sm; }
+  .pill-inactive { @apply inline-flex items-center gap-1.5 text-ms-sub     bg-ms-sidebar   text-xs font-semibold px-2 py-0.5 rounded-sm border border-ms-border; }
+  .pill-pending  { @apply inline-flex items-center gap-1.5 text-ms-orange  bg-ms-orange-bg text-xs font-semibold px-2 py-0.5 rounded-sm; }
+  .pill-expired  { @apply inline-flex items-center gap-1.5 text-ms-red     bg-ms-red-bg    text-xs font-semibold px-2 py-0.5 rounded-sm; }
+
+  .sev-critical { @apply border-l-ms-red; }
+  .sev-warning  { @apply border-l-ms-orange; }
+  .sev-info     { @apply border-l-ms-blue; }
+  .sev-ok       { @apply border-l-ms-green; }
 }

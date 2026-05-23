@@ -3,11 +3,14 @@
  * Puppeteer-based scraper for bms.libatech.net.lb (Radius BMS)
  * Handles login, pagination, data parsing, and alert rule evaluation.
  */
-const puppeteer = require('puppeteer');
+const puppeteer      = require('puppeteer-extra');
+const StealthPlugin  = require('puppeteer-extra-plugin-stealth');
+puppeteer.use(StealthPlugin());
 const User      = require('../models/User');
 const Client    = require('../models/Client');
 const Alert     = require('../models/Alert');
 const SyncLog   = require('../models/SyncLog');
+const tg        = require('./telegram');
 
 // ── Sync all active users (called by cron) ────────────────────────────
 async function syncAll() {
@@ -74,65 +77,72 @@ async function syncUser(user) {
     await step(1, 'running');
     await page.goto(`${bmsUrl}/login.php`, { waitUntil: 'networkidle2', timeout: 30000 });
 
-    // Fill username
-    await page.waitForSelector('input[name="username"], input[type="text"]', { timeout: 10000 });
-    await page.evaluate(() => {
-      const el = document.querySelector('input[name="username"]') || document.querySelector('input[type="text"]');
-      if (el) el.value = '';
-    });
-    await page.type('input[name="username"], input[type="text"]', bmsUser, { delay: 50 });
+    await page.waitForSelector('#login_username', { timeout: 10000 });
+    await page.type('#login_username', bmsUser, { delay: 60 });
+    await page.type('#login_password', bmsPass, { delay: 60 });
 
-    // Fill password
-    await page.waitForSelector('input[type="password"]');
-    await page.type('input[type="password"]', bmsPass, { delay: 50 });
+    // Capture the original PHPSESSID before login.php deletes it.
+    // The server sends Set-Cookie: PHPSESSID=deleted on login success, but the
+    // session data on disk stays valid — restoring the original ID after the
+    // redirect chain finishes lets us resume the authenticated session directly.
+    const cookiesBefore = await page.cookies();
+    const originalSession = cookiesBefore.find(c => c.name === 'PHPSESSID');
 
-    // Submit
-    const submitSel = 'button[type="submit"], input[type="submit"], .btn[type="submit"]';
-    await page.click(submitSel);
-    await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 15000 }).catch(() => {});
+    // Validate credentials via checklogin.php AJAX
+    const checkResult = await page.evaluate(async (user, pass) => {
+      const csrf = document.querySelector('input[name="csrf_token"]')?.value || '';
+      return await new Promise(resolve => {
+        $.ajax({
+          type: 'POST', url: 'checklogin.php',
+          data: { login_username: user, login_password: pass, csrf_token: csrf },
+          success: resolve,
+          error: () => resolve('ajax_error'),
+        });
+      });
+    }, bmsUser, bmsPass);
+
+    if (checkResult === 'false') {
+      throw new Error('BMS login failed — wrong username or password. Update credentials in Settings.');
+    }
+    if (checkResult === 'captcha') {
+      throw new Error('BMS login blocked — CAPTCHA required. Try logging in manually to clear it.');
+    }
+
+    // Submit the form; server will 302 → resellerUsers.php → logout.php → login.php
+    // (server deletes PHPSESSID but keeps session data on disk)
+    const nav = page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 20000 }).catch(() => null);
+    await page.evaluate(() => document.querySelector('form#login').submit()).catch(() => {});
+    await nav;
+
+    // Restore original session cookie, then navigate directly to the dashboard
+    if (originalSession) {
+      await page.setCookie({ ...originalSession, value: originalSession.value });
+    }
+    await page.goto(`${bmsUrl}/resellerUsers.php`, { waitUntil: 'networkidle2', timeout: 20000 });
 
     const afterUrl = page.url();
-    if (afterUrl.includes('login')) {
-      // Might be CAPTCHA or wrong credentials
-      const pageText = await page.evaluate(() => document.body.innerText);
-      const hasCaptchaErr = /captcha|invalid/i.test(pageText);
-      throw new Error(hasCaptchaErr
-        ? 'Login blocked — CAPTCHA or invalid credentials. Check your BMS username/password in Settings.'
-        : 'Login failed — still on login page. Check credentials in Settings.');
+    if (afterUrl.includes('login') || afterUrl.includes('logout')) {
+      throw new Error('BMS login failed — session not established. Check credentials in Settings.');
     }
     await step(1, 'done');
 
     // ── Step 2: Navigate to client list ─────────────────────────────
     await step(2, 'running');
-
-    // Radius BMS common paths for user/client list
-    const candidatePaths = [
-      '/index.php?module=Users&action=index',
-      '/index.php?module=Clients&action=index',
-      '/index.php?module=NAS&action=listUsers',
-      '/users',
-      '/clients',
-    ];
-
-    let listUrl = null;
-    for (const p of candidatePaths) {
-      try {
-        await page.goto(`${bmsUrl}${p}`, { waitUntil: 'networkidle2', timeout: 8000 });
-        const hasRows = await page.$('table tbody tr td');
-        if (hasRows) { listUrl = p; break; }
-      } catch (_) { continue; }
+    // Krypton BMS: reseller user list is at resellerUsers.php (already loaded after login)
+    if (!page.url().includes('resellerUsers')) {
+      await page.goto(`${bmsUrl}/resellerUsers.php`, { waitUntil: 'networkidle2', timeout: 15000 });
     }
-
-    if (!listUrl) {
-      // Try finding a nav link with keywords
-      const links = await page.$$eval('a', els =>
-        els.map(e => ({ href: e.href, text: e.textContent.trim() }))
-           .filter(l => /user|client|subscriber|member/i.test(l.text) && l.href.includes('index.php'))
-      );
-      if (links.length) {
-        await page.goto(links[0].href, { waitUntil: 'networkidle2', timeout: 8000 });
+    // Page uses DataTables with default 50 rows shown — enough for typical reseller accounts.
+    // Increase the DataTables page length via the UI length selector if present.
+    await page.evaluate(() => {
+      const sel = document.querySelector('select[name$="_length"]');
+      if (sel) {
+        const opts = Array.from(sel.options).map(o => parseInt(o.value));
+        const biggest = opts.filter(v => v > 0).sort((a,b) => b-a)[0];
+        if (biggest) { sel.value = biggest; sel.dispatchEvent(new Event('change', { bubbles: true })); }
       }
-    }
+    }).catch(() => {});
+    await new Promise(r => setTimeout(r, 1500));
     await step(2, 'done');
 
     // ── Step 3: Scrape paginated table ───────────────────────────────
@@ -140,36 +150,87 @@ async function syncUser(user) {
     const allClients = [];
     let pageNum = 0;
 
-    while (pageNum < 100) {
+    // Krypton BMS uses DataTables (client-side rendering). We set length=-1 above
+    // to show all rows at once, so only one pass is needed.
+    while (pageNum < 2) {
       pageNum++;
       const rows = await page.evaluate(() => {
-        const trs = Array.from(document.querySelectorAll('table tbody tr'));
+        const tables = Array.from(document.querySelectorAll('table'));
+        if (!tables.length) return [];
+        const mainTable = tables.reduce((a, b) =>
+          b.querySelectorAll('tbody tr').length > a.querySelectorAll('tbody tr').length ? b : a, tables[0]);
+
+        // Build keyword → column-index map from the header row
+        const hdrCells = Array.from(mainTable.querySelectorAll('thead th, thead td'));
+        const hdrs     = hdrCells.map(th => th.innerText.trim().toLowerCase().replace(/\s+/g, ' '));
+        const col = (...kws) => { for (const k of kws) { const i = hdrs.findIndex(h => h.includes(k)); if (i >= 0) return i; } return -1; };
+
+        const CI = {
+          name:       col('name'),
+          username:   col('username'),
+          status:     col('status'),
+          uptime:     col('uptime'),
+          address:    col('address'),
+          ip:         col('ip'),
+          dquota:     col('d. quota', 'd quota', 'daily'),
+          mquota:     col('m. quota', 'm quota', 'monthly'),
+          service:    col('service'),
+          expiry:     col('expiry date', 'expiry'),
+          fup:        col('fup'),
+          autoRefill: col('autorefill', 'auto refill'),
+          speed:      col('current speed', 'speed'),
+          phone:      col('phone number', 'phone'),
+          mobile:     col('mobile'),
+          startDate:  col('start date', 'start'),
+          lastSeen:   col('last active', 'last seen', 'last login'),
+        };
+
+        const trs = Array.from(mainTable.querySelectorAll('tbody tr'))
+          .filter(tr => tr.querySelectorAll('td').length > 3);
+
         return trs.map(tr => {
           const tds = Array.from(tr.querySelectorAll('td'));
-          const t   = i => tds[i]?.innerText?.trim() || '';
-          // Radius BMS typical column order (0-indexed):
-          // 0:ID  1:Username  2:Name/FullName  3:Profile  4:Status  5:Group  6:Expiry  7:Last-Login
+          const t   = i => i >= 0 && i < tds.length ? tds[i]?.innerText?.trim().replace(/\s+/g, ' ') || '' : '';
+          const clean = s => s.replace(/ \d{2}:\d{2}:\d{2}$/, '').replace(' 23:46:00', '');
+
+          const username  = t(CI.username);
+          const statusRaw = t(CI.status);
+          const ipMacRaw  = t(CI.ip);
+          const ipMatch   = ipMacRaw.match(/\b(\d{1,3}(?:\.\d{1,3}){3})\b/);
+          const macMatch  = ipMacRaw.match(/\b([0-9a-fA-F]{2}(?:[:-][0-9a-fA-F]{2}){5})\b/);
+
           return {
-            bmsId:    t(0) || `row_${Math.random().toString(36).slice(2,8)}`,
-            username: t(1),
-            name:     t(2) || t(1),
-            profile:  t(3),
-            status:   /activ/i.test(t(4)) ? 'active' : /expir/i.test(t(4)) ? 'expired' : /pend/i.test(t(4)) ? 'pending' : 'inactive',
-            group:    t(5),
-            expiry:   t(6),
-            lastSeen: t(7),
+            bmsId:        username || `row_${Math.random().toString(36).slice(2,8)}`,
+            username,
+            name:         t(CI.name) || username,
+            status:       /online/i.test(statusRaw)  ? 'online'
+                        : /expir/i.test(statusRaw)    ? 'expired'
+                        : /pend/i.test(statusRaw)     ? 'pending'
+                        : /active/i.test(statusRaw)   ? 'active'
+                        : 'inactive',
+            uptime:       t(CI.uptime),
+            address:      t(CI.address),
+            ipAddress:    ipMatch?.[1]  || '',
+            mac:          macMatch?.[1] || '',
+            dailyQuota:   t(CI.dquota),
+            monthlyQuota: t(CI.mquota),
+            profile:      t(CI.service),
+            expiry:       clean(t(CI.expiry)),
+            fup:          /\bon\b/i.test(t(CI.fup)),
+            autoRefill:   /yes/i.test(t(CI.autoRefill)),
+            currentSpeed: t(CI.speed),
+            phone:        t(CI.phone).replace(/[\s\-]/g, ''),
+            mobile:       t(CI.mobile).replace(/[\s\-]/g, ''),
+            startDate:    clean(t(CI.startDate)),
+            lastSeen:     clean(t(CI.lastSeen)),
+            group:        '',
           };
-        }).filter(r => r.username || r.name);
+        }).filter(r => r.username);
       });
 
       if (rows.length === 0) break;
       allClients.push(...rows);
-
-      // Next page
-      const next = await page.$('a.next, li.next:not(.disabled) a, [rel="next"], .pagination .next a');
-      if (!next) break;
-      await next.click();
-      await page.waitForNavigation({ waitUntil: 'networkidle2', timeout: 8000 }).catch(() => {});
+      break; // DataTables: all rows loaded in single pass
     }
 
     await browser.close();
@@ -311,6 +372,12 @@ async function evaluateRules(user, freshClients, prevMap) {
   }
 
   if (toCreate.length) await Alert.insertMany(toCreate);
+
+  // Forward to Telegram
+  for (const a of toCreate) {
+    await tg.sendAlert(user, a.sev, a.title, a.detail).catch(() => {});
+  }
+
   return toCreate.length;
 }
 

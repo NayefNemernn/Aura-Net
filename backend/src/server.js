@@ -1,6 +1,7 @@
 require('dotenv').config();
 
 const express   = require('express');
+const path      = require('path');
 const cors      = require('cors');
 const helmet    = require('helmet');
 const morgan    = require('morgan');
@@ -9,13 +10,20 @@ const cron      = require('node-cron');
 
 const { connectDB } = require('./services/db');
 const scraper       = require('./services/scraper');
+const wa            = require('./services/whatsapp');
+const reminders     = require('./services/reminders');
 
-const authRoutes     = require('./routes/auth');
-const clientRoutes   = require('./routes/clients');
-const alertRoutes    = require('./routes/alerts');
-const reportRoutes   = require('./routes/reports');
-const syncRoutes     = require('./routes/sync');
-const settingsRoutes = require('./routes/settings');
+const authRoutes      = require('./routes/auth');
+const clientRoutes    = require('./routes/clients');
+const alertRoutes     = require('./routes/alerts');
+const reportRoutes    = require('./routes/reports');
+const syncRoutes      = require('./routes/sync');
+const settingsRoutes  = require('./routes/settings');
+const whatsappRoutes  = require('./routes/whatsapp');
+const messagingRoutes = require('./routes/messaging');
+const bmsActionsRoutes = require('./routes/bmsActions');
+const contactRoutes    = require('./routes/contact');
+const landingRoutes    = require('./routes/landing');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -45,12 +53,18 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 
 // ── Routes ────────────────────────────────────────────────────────────
-app.use('/api/auth',     authRoutes);
-app.use('/api/clients',  clientRoutes);
-app.use('/api/alerts',   alertRoutes);
-app.use('/api/reports',  reportRoutes);
-app.use('/api/sync',     syncRoutes);
-app.use('/api/settings', settingsRoutes);
+app.use('/api/auth',      authRoutes);
+app.use('/api/clients',   clientRoutes);
+app.use('/api/alerts',    alertRoutes);
+app.use('/api/reports',   reportRoutes);
+app.use('/api/sync',      syncRoutes);
+app.use('/api/settings',  settingsRoutes);
+app.use('/api/whatsapp',   whatsappRoutes);
+app.use('/api/messaging',  messagingRoutes);
+app.use('/api/bms',        bmsActionsRoutes);
+app.use('/api/contact',    contactRoutes);
+app.use('/api/landing',    landingRoutes);
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.get('/api/health', (req, res) => res.json({
   status: 'ok', service: 'Aura Net API', version: '1.0.0', time: new Date().toISOString()
@@ -75,6 +89,12 @@ async function boot() {
   cron.schedule(process.env.SYNC_CRON || '0 * * * *', () => {
     console.log('⏰ Cron sync triggered');
     scraper.syncAll().catch(console.error);
+  });
+
+  // Daily expiry reminders — runs at 09:00 every day
+  cron.schedule('0 9 * * *', () => {
+    console.log('📱 Running daily WhatsApp expiry reminders');
+    reminders.sendExpiryReminders().catch(console.error);
   });
 }
 

@@ -8,8 +8,8 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ error: 'No token' });
     }
     const token   = header.slice(7);
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret_change_me');
-    const user    = await User.findById(decoded.userId);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev_secret');
+    const user    = await User.findById(decoded.userId).select('+bmsPass');
     if (!user || !user.isActive) return res.status(401).json({ error: 'Unauthorized' });
     req.user = user;
     next();

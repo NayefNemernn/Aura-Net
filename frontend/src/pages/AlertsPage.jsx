@@ -3,10 +3,10 @@ import api from '../services/api';
 
 const SEV = ['all','critical','warning','info','ok'];
 const SEV_COLORS = {
-  critical: { border: 'border-danger', dot: 'bg-danger', tag: 'bg-danger/10 text-danger' },
-  warning:  { border: 'border-warn',   dot: 'bg-warn',   tag: 'bg-warn/10 text-warn' },
-  info:     { border: 'border-accent', dot: 'bg-accent', tag: 'bg-accent/10 text-accent' },
-  ok:       { border: 'border-teal',   dot: 'bg-teal',   tag: 'bg-teal/10 text-teal' },
+  critical: { border: 'border-ms-red',    dot: 'bg-ms-red',    tag: 'bg-ms-red-bg text-ms-red' },
+  warning:  { border: 'border-ms-orange', dot: 'bg-ms-orange', tag: 'bg-ms-orange-bg text-ms-orange' },
+  info:     { border: 'border-ms-blue',   dot: 'bg-ms-blue',   tag: 'bg-ms-blue-light text-ms-blue' },
+  ok:       { border: 'border-ms-green',  dot: 'bg-ms-green',  tag: 'bg-ms-green-bg text-ms-green' },
 };
 
 export default function AlertsPage() {
@@ -26,6 +26,10 @@ export default function AlertsPage() {
   }, [filter]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    window.addEventListener('bms-sync-done', load);
+    return () => window.removeEventListener('bms-sync-done', load);
+  }, [load]);
 
   const dismiss = async (id) => {
     await api.patch(`/api/alerts/${id}/dismiss`);
@@ -40,28 +44,28 @@ export default function AlertsPage() {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="p-6 max-w-4xl">
+    <div className="p-3 sm:p-6 max-w-4xl">
       {/* Header */}
-      <div className="flex items-start justify-between mb-5 gap-4 flex-wrap">
+      <div className="flex items-center justify-between mb-4 gap-3">
         <div>
-          <h1 className="font-display font-bold text-2xl text-white tracking-tight">Alerts</h1>
-          <p className="text-muted text-sm mt-0.5">{total} open alerts from latest sync</p>
+          <h1 className="font-semibold text-xl sm:text-2xl text-ms-text tracking-tight">Alerts</h1>
+          <p className="text-ms-sub text-xs sm:text-sm mt-0.5">{total} open alerts</p>
         </div>
-        <button onClick={dismissAll} className="btn-ghost text-sm">✓ Dismiss {filter !== 'all' ? filter : 'all'}</button>
+        <button onClick={dismissAll} className="ms-btn-ghost text-xs sm:text-sm border border-ms-border px-3 py-2 whitespace-nowrap">
+          Dismiss {filter !== 'all' ? filter : 'all'}
+        </button>
       </div>
 
-      {/* Severity filter */}
-      <div className="flex gap-2 mb-5 flex-wrap">
+      {/* Severity filter — horizontal scroll on mobile */}
+      <div className="flex gap-1.5 mb-4 overflow-x-auto pb-1 scrollbar-none">
         {SEV.map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all border ${
-              filter === s
-                ? 'bg-accent/15 text-accent border-accent/30'
-                : 'bg-s3 text-dim border-white/[0.06] hover:text-white'
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize transition-colors border whitespace-nowrap flex-shrink-0 ${
+              filter === s ? 'bg-ms-blue-light text-ms-blue border-ms-blue/30' : 'bg-ms-surface text-ms-sub border-ms-border'
             }`}>
             {s}
             {s !== 'all' && counts[s] > 0 && (
-              <span className="ml-1.5 bg-white/10 text-white/70 text-[9px] px-1.5 py-0.5 rounded-full">{counts[s]}</span>
+              <span className="ml-1 bg-ms-border text-ms-dim text-[9px] px-1.5 py-0.5 rounded-full">{counts[s]}</span>
             )}
           </button>
         ))}
@@ -70,30 +74,30 @@ export default function AlertsPage() {
       {/* Alert list */}
       {loading ? (
         <div className="flex justify-center py-12">
-          <span className="w-6 h-6 border-2 border-white/10 border-t-accent rounded-full animate-spin" />
+          <span className="w-6 h-6 border-2 border-ms-border border-t-ms-blue rounded-full animate-spin" />
         </div>
       ) : alerts.length === 0 ? (
-        <div className="card text-center py-16">
+        <div className="ms-card text-center py-16">
           <div className="text-3xl mb-3">🛡️</div>
-          <div className="text-white font-medium mb-1">No alerts</div>
-          <div className="text-dim text-sm">All clear — sync BMS to re-evaluate</div>
+          <div className="text-ms-text font-semibold mb-1">No alerts</div>
+          <div className="text-ms-dim text-sm">All clear — sync BMS to re-evaluate</div>
         </div>
       ) : (
         <div className="space-y-2">
           {alerts.map(a => {
             const c = SEV_COLORS[a.sev] || SEV_COLORS.info;
             return (
-              <div key={a._id} className={`card border-l-2 ${c.border} flex items-start gap-3 p-4 hover:bg-white/[0.02] transition-colors`}>
+              <div key={a._id} className={`ms-card border-l-2 ${c.border} flex items-start gap-3 p-4 hover:bg-ms-sidebar transition-colors`}>
                 <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${c.dot}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-white font-medium">{a.title}</p>
-                  {a.detail && <p className="text-xs text-dim mt-0.5 line-clamp-2">{a.detail}</p>}
-                  <p className="text-[10px] text-dim/60 mt-1">{new Date(a.createdAt).toLocaleString()} · {a.rule}</p>
+                  <p className="text-sm text-ms-text font-medium">{a.title}</p>
+                  {a.detail && <p className="text-xs text-ms-dim mt-0.5 line-clamp-2">{a.detail}</p>}
+                  <p className="text-[10px] text-ms-dim mt-1">{new Date(a.createdAt).toLocaleString()} · {a.rule}</p>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider ${c.tag}`}>{a.sev}</span>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded uppercase tracking-wider ${c.tag}`}>{a.sev}</span>
                   <button onClick={() => dismiss(a._id)}
-                    className="w-6 h-6 rounded bg-white/5 hover:bg-white/10 flex items-center justify-center text-dim hover:text-white text-xs transition-colors">
+                    className="w-6 h-6 rounded bg-ms-sidebar hover:bg-ms-border flex items-center justify-center text-ms-dim hover:text-ms-text text-xs transition-colors">
                     ✕
                   </button>
                 </div>

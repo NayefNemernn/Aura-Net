@@ -30,6 +30,15 @@ const UserSchema = new mongoose.Schema({
     emailEnabled: { type: Boolean, default: false },
     emailAddr:    { type: String,  default: '' },
   },
+
+  telegramToken:  { type: String, default: '' },
+  telegramChatId: { type: String, default: '' },
+  telegramAlerts: {
+    syncOk:       { type: Boolean, default: true },
+    expirySoon:   { type: Boolean, default: true },
+    statusChange: { type: Boolean, default: true },
+    critical:     { type: Boolean, default: true },
+  },
 }, { timestamps: true });
 
 UserSchema.pre('save', async function (next) {

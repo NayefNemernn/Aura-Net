@@ -11,16 +11,18 @@ router.get('/overview', async (req, res) => {
     const oid   = req.user._id;
     const today = new Date().toISOString().split('T')[0];
     const soon  = new Date(Date.now() + 7*864e5).toISOString().split('T')[0];
-    const [total, active, inactive, pending, expiringSoon, recentAlerts, lastSync] = await Promise.all([
+    const [total, online, active, inactive, expired, pending, expiringSoon, recentAlerts, lastSync] = await Promise.all([
       Client.countDocuments({ owner: oid }),
+      Client.countDocuments({ owner: oid, status:'online' }),
       Client.countDocuments({ owner: oid, status:'active' }),
       Client.countDocuments({ owner: oid, status:'inactive' }),
+      Client.countDocuments({ owner: oid, status:'expired' }),
       Client.countDocuments({ owner: oid, status:'pending' }),
       Client.countDocuments({ owner: oid, expiry:{ $gte:today, $lte:soon } }),
       Alert.find({ owner:oid, dismissed:false }).sort({ createdAt:-1 }).limit(5),
       SyncLog.findOne({ owner:oid }).sort({ createdAt:-1 }),
     ]);
-    res.json({ success:true, report:{ generatedAt: new Date(), summary:{ total,active,inactive,pending,expiringSoon }, activeRate: total?Math.round(active/total*100):0, recentAlerts, lastSync } });
+    res.json({ success:true, report:{ generatedAt: new Date(), summary:{ total, online, active, inactive, expired, pending, expiringSoon }, activeRate: total?Math.round((online+active)/total*100):0, recentAlerts, lastSync } });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -29,8 +31,9 @@ router.get('/clients', async (req, res) => {
   try {
     const clients = await Client.find({ owner: req.user._id }).sort({ name:1 });
     if (req.query.format === 'csv') {
-      const rows = ['ID,Name,Username,Status,Profile,Group,Expiry,Last Seen',
-        ...clients.map(c => `${c.bmsId},"${c.name}","${c.username}",${c.status},"${c.profile}","${c.group}",${c.expiry},${c.lastSeen}`)
+      const esc = v => `"${String(v||'').replace(/"/g,'""')}"`;
+      const rows = ['ID,Name,Username,Status,Service,Expiry,Start Date,Last Seen,Phone,Mobile,IP,MAC,Address,Uptime,D.Quota,M.Quota,AutoRefill,FUP,Speed,Paid',
+        ...clients.map(c => [c.bmsId,esc(c.name),esc(c.username),c.status,esc(c.profile),c.expiry,c.startDate,c.lastSeen,c.phone,c.mobile,c.ipAddress,c.mac,esc(c.address),c.uptime,esc(c.dailyQuota),esc(c.monthlyQuota),c.autoRefill?'Yes':'No',c.fup?'ON':'OFF',esc(c.currentSpeed),c.paid?'Yes':'No'].join(','))
       ].join('\n');
       res.setHeader('Content-Type','text/csv');
       res.setHeader('Content-Disposition','attachment; filename=clients.csv');
