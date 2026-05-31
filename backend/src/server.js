@@ -24,6 +24,7 @@ const messagingRoutes = require('./routes/messaging');
 const bmsActionsRoutes = require('./routes/bmsActions');
 const contactRoutes    = require('./routes/contact');
 const landingRoutes    = require('./routes/landing');
+const paymentRoutes    = require('./routes/payments');
 
 const app  = express();
 const PORT = process.env.PORT || 3001;
@@ -64,6 +65,7 @@ app.use('/api/messaging',  messagingRoutes);
 app.use('/api/bms',        bmsActionsRoutes);
 app.use('/api/contact',    contactRoutes);
 app.use('/api/landing',    landingRoutes);
+app.use('/api/payments',   paymentRoutes);
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();

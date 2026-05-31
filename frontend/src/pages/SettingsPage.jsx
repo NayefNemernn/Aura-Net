@@ -13,11 +13,17 @@ export default function SettingsPage() {
   const [wa,       setWa]       = useState({ status: 'disconnected', qr: null });
   const [waSending, setWaSending] = useState(false);
   const [waMsg,    setWaMsg]    = useState('');
+  const [whishQr,  setWhishQr]  = useState(null);
   const waInterval = useRef(null);
+
+  const loadWhishQr = useCallback(() => {
+    api.get('/api/payments/whish').then(r => setWhishQr(r.data.qr)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     api.get('/api/settings').then(r => setSettings(r.data.settings)).finally(() => setLoading(false));
-  }, []);
+    loadWhishQr();
+  }, [loadWhishQr]);
 
   const pollWa = useCallback(() => {
     api.get('/api/whatsapp/status').then(r => setWa(r.data)).catch(() => {});
@@ -55,6 +61,7 @@ export default function SettingsPage() {
       setSettings(data.settings);
       setMsg('Settings saved');
       updateUser({ ...user, name: settings.name });
+      loadWhishQr();
     } catch (e) { setMsg(e.response?.data?.error || e.message); }
     finally { setSaving(false); setTimeout(() => setMsg(''), 3000); }
   };
@@ -192,6 +199,38 @@ export default function SettingsPage() {
         <p className="text-xs text-ms-dim">
           Reminders are also sent automatically every day at 09:00 for clients expiring today or in 2 days (phone number must be scraped from BMS).
         </p>
+      </Section>
+
+      {/* Whish Money Payment */}
+      <Section title="Whish Money Payment" desc="Your Whish pay link / account. Clients scan the QR or get the link on WhatsApp to pay you.">
+        <Field label="Whish pay link">
+          <input className="ms-input" value={settings.whish?.payLink || ''} onChange={e => set('whish.payLink', e.target.value)}
+            placeholder="https://whish.money/… (your 'pay me' link)" />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Whish number">
+            <input className="ms-input" value={settings.whish?.number || ''} onChange={e => set('whish.number', e.target.value)}
+              placeholder="71 234 567" />
+          </Field>
+          <Field label="Account name">
+            <input className="ms-input" value={settings.whish?.accountName || ''} onChange={e => set('whish.accountName', e.target.value)}
+              placeholder="Aura Net" />
+          </Field>
+        </div>
+        <Field label="WhatsApp message template">
+          <textarea className="ms-input resize-none" rows={3}
+            value={settings.whish?.messageTemplate || ''} onChange={e => set('whish.messageTemplate', e.target.value)} />
+          <p className="text-[11px] text-ms-dim mt-1">Placeholders: <code>{'{name}'}</code> <code>{'{link}'}</code> <code>{'{account}'}</code></p>
+        </Field>
+
+        {whishQr ? (
+          <div className="flex flex-col items-center gap-2 py-2">
+            <img src={whishQr} alt="Whish payment QR" className="w-44 h-44 rounded-lg border border-ms-border bg-white p-1.5" />
+            <p className="text-xs text-ms-dim">Scan with your phone camera to pay · save the QR to share it</p>
+          </div>
+        ) : (
+          <p className="text-xs text-ms-dim">Add a pay link or number above and <b>Save Settings</b> to generate the QR.</p>
+        )}
       </Section>
 
       {/* Save */}

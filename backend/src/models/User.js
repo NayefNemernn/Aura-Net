@@ -31,6 +31,15 @@ const UserSchema = new mongoose.Schema({
     emailAddr:    { type: String,  default: '' },
   },
 
+  // Whish Money payment collection (generic account QR — no merchant API needed)
+  whish: {
+    payLink:         { type: String, default: '' },   // Whish "pay me" URL (encoded in the QR)
+    number:          { type: String, default: '' },   // Whish account / phone number
+    accountName:     { type: String, default: '' },
+    note:            { type: String, default: '' },
+    messageTemplate: { type: String, default: 'Hello {name}, you can pay your Aura Net subscription via Whish Money:\n{link}\n\nThank you!' },
+  },
+
   telegramToken:  { type: String, default: '' },
   telegramChatId: { type: String, default: '' },
   telegramAlerts: {

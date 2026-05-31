@@ -24,6 +24,9 @@ export default function ClientProfilePage() {
   const [error,   setError]   = useState(null);
   const [saveMsg, setSaveMsg] = useState(null);
   const [editBms, setEditBms] = useState(false);
+  const [whish,   setWhish]   = useState(null);
+  const [paySending, setPaySending] = useState(false);
+  const [payMsg,  setPayMsg]  = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -39,6 +42,17 @@ export default function ClientProfilePage() {
   }, [id]);
 
   useEffect(() => { load(); }, [load]);
+  useEffect(() => { api.get('/api/payments/whish').then(r => setWhish(r.data)).catch(() => {}); }, []);
+
+  const sendWhish = async () => {
+    setPaySending(true); setPayMsg(null);
+    try {
+      await api.post('/api/payments/whish/send', { clientId: id });
+      setPayMsg({ ok: true, msg: 'Pay link sent on WhatsApp' });
+    } catch (e) {
+      setPayMsg({ ok: false, msg: e.response?.data?.error || e.message });
+    } finally { setPaySending(false); }
+  };
 
   const setF = (k, v) => { setForm(p => ({ ...p, [k]: v })); setSaveMsg(null); };
 
@@ -156,6 +170,35 @@ export default function ClientProfilePage() {
               value={form.note} onChange={e => setF('note', e.target.value)} />
           </div>
         </Section>
+
+        {/* Whish payment */}
+        <div>
+          <div className="text-[10px] text-ms-dim font-semibold uppercase tracking-wider mb-2">Whish Payment</div>
+          {whish?.configured ? (
+            <div className="ms-card p-4 flex flex-col sm:flex-row items-center gap-4">
+              {whish.qr && <img src={whish.qr} alt="Whish payment QR" className="w-32 h-32 rounded-lg border border-ms-border bg-white p-1.5 flex-shrink-0" />}
+              <div className="flex-1 min-w-0 w-full">
+                {whish.whish?.accountName && <div className="text-sm text-ms-text font-medium">{whish.whish.accountName}</div>}
+                <a href={whish.target} target="_blank" rel="noopener noreferrer" className="text-xs text-ms-blue font-mono break-all hover:underline">{whish.target}</a>
+                <div className="flex flex-wrap items-center gap-2 mt-3">
+                  <button onClick={sendWhish} disabled={paySending || !(c.phone || c.mobile)}
+                    className="ms-btn text-xs px-3 py-2 flex items-center gap-2 disabled:opacity-40">
+                    {paySending
+                      ? <><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Sending…</>
+                      : '📱 Send pay link on WhatsApp'}
+                  </button>
+                  <button onClick={() => navigator.clipboard?.writeText(whish.target)} className="ms-btn-outline text-xs px-3 py-2">Copy link</button>
+                </div>
+                {!(c.phone || c.mobile) && <p className="text-[11px] text-ms-dim mt-1">No phone number on file for this client.</p>}
+                {payMsg && <p className={`text-xs mt-2 ${payMsg.ok ? 'text-ms-green' : 'text-ms-red'}`}>{payMsg.ok ? '✓ ' : '✕ '}{payMsg.msg}</p>}
+              </div>
+            </div>
+          ) : (
+            <div className="ms-card p-3 text-xs text-ms-dim">
+              Add your Whish pay link in <button className="text-ms-blue underline" onClick={() => navigate('/settings')}>Settings</button> to send payment requests.
+            </div>
+          )}
+        </div>
 
         {/* Live BMS actions */}
         <div>
