@@ -26,10 +26,28 @@ const ClientSchema = new mongoose.Schema({
   currentSpeed:     { type: String, default: '' },
   remindersEnabled: { type: Boolean, default: true, index: true },
 
-  paid:       { type: Boolean, default: false, index: true },
-  prevStatus: { type: String, default: '' },
-  note:       { type: String, default: '' },
-  syncedAt:   { type: Date, default: Date.now },
+  // ── Extended BMS fields (seeded from BMS; blank ones are admin-editable) ──
+  buildingDetail:   { type: String, default: '' },   // BMS "B.D."
+  sector:           { type: String, default: '' },
+  station:          { type: String, default: '' },
+  cpe:              { type: String, default: '' },
+  radioName:        { type: String, default: '' },
+  rxccq:            { type: String, default: '' },
+  signalNoise:      { type: String, default: '' },
+  signalStrength:   { type: String, default: '' },
+  routerOsVersion:  { type: String, default: '' },
+  fq:               { type: String, default: '' },    // BMS "F-Q" (ON/OFF)
+  sellingPrice:     { type: String, default: '' },
+  vlan:             { type: String, default: '' },
+  nationality:      { type: String, default: '' },
+  whishPayments:    { type: String, default: '' },
+  zone:             { type: String, default: '' },
+
+  paid:          { type: Boolean, default: false, index: true },
+  prevStatus:    { type: String, default: '' },
+  note:          { type: String, default: '' },
+  adminUpdatedAt: { type: Date },                     // set when an admin edits the profile
+  syncedAt:      { type: Date, default: Date.now },
 }, { timestamps: true });
 
 // compound unique: one bmsId per user

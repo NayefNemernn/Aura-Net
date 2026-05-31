@@ -183,6 +183,23 @@ async function syncUser(user) {
           mobile:     col('mobile'),
           startDate:  col('start date', 'start'),
           lastSeen:   col('last active', 'last seen', 'last login'),
+          // Extended columns
+          fq:             col('f-q', 'f q'),
+          note:           col('notes', 'note'),
+          buildingDetail: col('b.d.', 'b. d.', 'b d', 'building'),
+          sector:         col('sector'),
+          station:        col('station'),
+          cpe:            col('cpe'),
+          radioName:      col('radio name'),
+          rxccq:          col('rxccq'),
+          signalNoise:    col('signal noise'),
+          signalStrength: col('signal strength'),
+          routerOsVersion:col('router os version', 'router os', 'os version'),
+          sellingPrice:   col('selling price', 'price'),
+          vlan:           col('vlan'),
+          nationality:    col('nationality'),
+          whishPayments:  col('whish payments', 'whish'),
+          zone:           col('zone'),
         };
 
         const trs = Array.from(mainTable.querySelectorAll('tbody tr'))
@@ -224,6 +241,23 @@ async function syncUser(user) {
             startDate:    clean(t(CI.startDate)),
             lastSeen:     clean(t(CI.lastSeen)),
             group:        '',
+            // Extended fields (blank when BMS leaves them empty)
+            fq:              t(CI.fq),
+            note:            t(CI.note),
+            buildingDetail:  t(CI.buildingDetail),
+            sector:          t(CI.sector),
+            station:         t(CI.station),
+            cpe:             t(CI.cpe),
+            radioName:       t(CI.radioName),
+            rxccq:           t(CI.rxccq),
+            signalNoise:     t(CI.signalNoise),
+            signalStrength:  t(CI.signalStrength),
+            routerOsVersion: t(CI.routerOsVersion),
+            sellingPrice:    t(CI.sellingPrice),
+            vlan:            t(CI.vlan),
+            nationality:     t(CI.nationality),
+            whishPayments:   t(CI.whishPayments),
+            zone:            t(CI.zone),
           };
         }).filter(r => r.username);
       });
@@ -242,16 +276,42 @@ async function syncUser(user) {
     const prevClients = await Client.find({ owner: user._id }).select('bmsId status');
     const prevMap = new Map(prevClients.map(c => [c.bmsId, c]));
 
+    // Volatile/operational fields always reflect live BMS state — overwrite even when
+    // cleared (e.g. IP/uptime drop when a client goes offline). Every other field is
+    // only written when BMS returns a non-empty value, so admin-filled blanks survive.
+    const ALWAYS_WRITE = new Set([
+      'status','ipAddress','mac','uptime','dailyQuota','monthlyQuota',
+      'currentSpeed','lastSeen','fup','autoRefill',
+    ]);
     for (const c of allClients) {
       const existing = prevMap.get(c.bmsId);
-      const update   = { ...c, owner: user._id, syncedAt: new Date(), prevStatus: existing?.status || '' };
-      const result   = await Client.findOneAndUpdate(
+      const set = { owner: user._id, syncedAt: new Date(), prevStatus: existing?.status || '' };
+      for (const [k, v] of Object.entries(c)) {
+        if (ALWAYS_WRITE.has(k) || (v !== '' && v !== null && v !== undefined)) set[k] = v;
+      }
+      await Client.findOneAndUpdate(
         { owner: user._id, bmsId: c.bmsId },
-        { $set: update },
+        { $set: set },
         { upsert: true, new: true, setDefaultsOnInsert: true }
       );
       if (!existing) clientsNew++;
       else if (existing.status !== c.status) clientsUpdated++;
+    }
+
+    // ── Prune clients that vanished from the BMS feed ───────────────
+    // A client no longer in the reseller list was deleted/renamed in BMS.
+    // SAFETY GUARD: only prune when the scrape returned a healthy row count
+    // (>= 50% of the previous total), so a transient or partial scrape can
+    // never wipe the dataset. With no previous data, any non-empty scrape is fine.
+    let clientsRemoved = 0;
+    const prevCount = prevMap.size;
+    const healthyScrape = allClients.length > 0 && (prevCount === 0 || allClients.length >= prevCount * 0.5);
+    if (healthyScrape) {
+      const seenIds  = allClients.map(c => c.bmsId);
+      const pruneRes = await Client.deleteMany({ owner: user._id, bmsId: { $nin: seenIds } });
+      clientsRemoved = pruneRes.deletedCount || 0;
+    } else if (allClients.length > 0) {
+      console.warn(`⚠️  Skipping prune for ${user.email}: scraped ${allClients.length} vs previous ${prevCount} (below 50% safety threshold)`);
     }
 
     // ── Step 5: Evaluate alert rules ────────────────────────────────
@@ -264,12 +324,13 @@ async function syncUser(user) {
     log.clientsFound   = allClients.length;
     log.clientsNew     = clientsNew;
     log.clientsUpdated = clientsUpdated;
+    log.clientsRemoved = clientsRemoved;
     log.alertsCreated  = alertsCreated;
     log.durationMs     = Date.now() - start;
     await log.save();
 
-    console.log(`✅ Sync done for ${user.email}: ${allClients.length} clients, ${alertsCreated} alerts in ${log.durationMs}ms`);
-    return { success: true, clientsFound: allClients.length, clientsNew, clientsUpdated, alertsCreated };
+    console.log(`✅ Sync done for ${user.email}: ${allClients.length} clients (${clientsRemoved} pruned), ${alertsCreated} alerts in ${log.durationMs}ms`);
+    return { success: true, clientsFound: allClients.length, clientsNew, clientsUpdated, clientsRemoved, alertsCreated };
 
   } catch (err) {
     if (browser) { try { await browser.close(); } catch (_) {} }

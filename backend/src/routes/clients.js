@@ -29,7 +29,7 @@ router.get('/stats', async (req, res) => {
   try {
     const oid   = req.user._id;
     const today = new Date().toISOString().split('T')[0];
-    const soon  = new Date(Date.now() + 5*864e5).toISOString().split('T')[0];
+    const soon  = new Date(Date.now() + 7*864e5).toISOString().split('T')[0];
     const [total, online, active, inactive, expired, pending, expiringSoon] = await Promise.all([
       Client.countDocuments({ owner: oid }),
       Client.countDocuments({ owner: oid, status: 'online' }),
@@ -48,6 +48,33 @@ router.get('/:id', async (req, res) => {
   try {
     const c = await Client.findOne({ _id: req.params.id, owner: req.user._id });
     if (!c) return res.status(404).json({ error: 'Not found' });
+    res.json({ success: true, client: c });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Fields an admin may fill/edit on a client profile. Volatile/live BMS fields
+// (status, ip, uptime, quotas, etc.) and system fields are intentionally excluded.
+const EDITABLE_FIELDS = [
+  'name','address','phone','mobile','profile','expiry','startDate','note',
+  'buildingDetail','sector','station','cpe','radioName','rxccq','signalNoise',
+  'signalStrength','routerOsVersion','fq','sellingPrice','vlan','nationality',
+  'whishPayments','zone',
+];
+
+// PATCH /api/clients/:id  — admin edits profile fields (saved to our DB)
+router.patch('/:id', async (req, res) => {
+  try {
+    const c = await Client.findOne({ _id: req.params.id, owner: req.user._id });
+    if (!c) return res.status(404).json({ error: 'Not found' });
+    let changed = false;
+    for (const f of EDITABLE_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(req.body, f)) {
+        c[f] = typeof req.body[f] === 'string' ? req.body[f].trim() : req.body[f];
+        changed = true;
+      }
+    }
+    if (changed) c.adminUpdatedAt = new Date();
+    await c.save();
     res.json({ success: true, client: c });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

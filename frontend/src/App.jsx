@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import LandingPage  from './pages/LandingPage';
 import OverviewPage from './pages/OverviewPage';
 import ClientsPage  from './pages/ClientsPage';
+import ClientProfilePage from './pages/ClientProfilePage';
 import AlertsPage   from './pages/AlertsPage';
 import ReportsPage   from './pages/ReportsPage';
 import SettingsPage  from './pages/SettingsPage';
@@ -41,6 +42,7 @@ export default function App() {
         <Route path="/" element={<Guard><Layout /></Guard>}>
           <Route index              element={<OverviewPage />} />
           <Route path="clients"     element={<ClientsPage />} />
+          <Route path="clients/:id" element={<ClientProfilePage />} />
           <Route path="alerts"      element={<AlertsPage />} />
           <Route path="messaging"   element={<MessagingPage />} />
           <Route path="reports"         element={<ReportsPage />} />

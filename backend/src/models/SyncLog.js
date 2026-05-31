@@ -6,6 +6,7 @@ const SyncLogSchema = new mongoose.Schema({
   clientsFound:   { type: Number, default: 0 },
   clientsNew:     { type: Number, default: 0 },
   clientsUpdated: { type: Number, default: 0 },
+  clientsRemoved: { type: Number, default: 0 },
   alertsCreated:  { type: Number, default: 0 },
   durationMs:     { type: Number, default: 0 },
   error:          { type: String, default: '' },
