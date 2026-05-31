@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Wifi, Shield, Cable, Phone } from 'lucide-react';
+import { Menu, X, Wifi, Shield, Cable, Phone, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useTheme } from '../../hooks/useTheme';
 
 const navLinks = [
   { label: 'Internet',  href: '#packages',  icon: Wifi },
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [scrolled,    setScrolled]    = useState(false);
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const navigate = useNavigate();
+  const { theme, toggle, isLight } = useTheme();
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
@@ -68,6 +70,15 @@ export default function Navbar() {
                   {link.label}
                 </button>
               ))}
+              {/* Theme toggle */}
+              <button
+                onClick={toggle}
+                className="w-8 h-8 flex items-center justify-center rounded-sm border border-border/50 text-muted-foreground hover:text-primary hover:border-primary/50 transition-all duration-300"
+                title={isLight ? 'Switch to dark' : 'Switch to light'}
+              >
+                {isLight ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+              </button>
+
               <button
                 onClick={() => navigate('/login')}
                 className="px-5 py-2 border border-primary/50 text-primary font-mono text-[10px] tracking-[0.2em] uppercase rounded-sm hover:bg-primary hover:text-background transition-all duration-300"

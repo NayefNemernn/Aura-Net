@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import api from '../../services/api';
+import { useTheme } from '../../hooks/useTheme';
 
 const NAV = [
   { to: '/',               label: 'Overview',  icon: GridIcon,    end: true },
@@ -16,6 +17,7 @@ const NAV = [
 export default function Layout() {
   const { user, logout } = useAuth();
   const nav = useNavigate();
+  const { isLight, toggle } = useTheme();
   const [syncing, setSyncing] = useState(false);
   const [toast,   setToast]   = useState(null);
 
@@ -98,6 +100,15 @@ export default function Layout() {
               ? <span className="w-3 h-3 border border-ms-blue/30 border-t-ms-blue rounded-full animate-spin" />
               : <RefreshIcon size={12} />}
             <span className="hidden sm:inline">{syncing ? 'Syncing…' : 'Sync BMS'}</span>
+          </button>
+
+          {/* Theme toggle */}
+          <button
+            onClick={toggle}
+            title={isLight ? 'Dark mode' : 'Light mode'}
+            className="w-7 h-7 flex items-center justify-center rounded-sm border border-ms-border text-ms-dim hover:text-ms-blue hover:border-ms-blue transition-all"
+          >
+            {isLight ? <MoonIcon size={13} /> : <SunIcon size={13} />}
           </button>
 
           <div className="flex items-center gap-2 pl-2 border-l border-ms-border">
@@ -225,5 +236,16 @@ function GlobeIcon({ size = 16 }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <circle cx="8" cy="8" r="6.5"/>
     <path d="M8 1.5c-2 2-3 4-3 6.5s1 4.5 3 6.5M8 1.5c2 2 3 4 3 6.5s-1 4.5-3 6.5M1.5 8h13"/>
+  </svg>;
+}
+function SunIcon({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <circle cx="8" cy="8" r="3"/>
+    <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>
+  </svg>;
+}
+function MoonIcon({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+    <path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5Z"/>
   </svg>;
 }

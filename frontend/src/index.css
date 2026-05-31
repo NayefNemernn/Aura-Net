@@ -4,14 +4,67 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── CSS custom properties (RGB channels for opacity support) ────── */
+:root {
+  /* ── Dark mode (default) ─────────────── */
+  --bg:          12 12 12;       /* #0c0c0c */
+  --fg:          240 236 228;    /* #f0ece4 */
+  --card:        17 17 17;       /* #111111 */
+  --primary:     200 168 106;    /* #c8a86a */
+  --primary-fg:  12 12 12;
+  --secondary:   26 26 26;       /* #1a1a1a */
+  --muted:       26 26 26;
+  --muted-fg:    240 236 228;    /* used at .45 opacity */
+  --border:      200 168 106;    /* gold at .18 opacity */
+
+  /* Admin dark vars */
+  --ms-bg:           12 12 12;
+  --ms-surface:      17 17 17;
+  --ms-border:       50 50 50;
+  --ms-primary:      200 168 106;
+  --ms-primary-dark: 168 144 88;
+  --ms-navy:         8 8 8;
+  --ms-text:         240 236 228;
+  --ms-green:        74 222 128;
+  --ms-orange:       251 146 60;
+  --ms-red:          248 113 113;
+  --ms-sidebar:      14 14 14;
+}
+
+html.light {
+  /* ── Light mode ──────────────────────── */
+  --bg:          247 243 238;    /* #f7f3ee warm cream */
+  --fg:          28 21 16;       /* #1c1510 dark warm */
+  --card:        255 255 255;
+  --primary:     154 112 40;     /* #9a7028 darker gold */
+  --primary-fg:  255 255 255;
+  --secondary:   240 235 228;    /* #f0ebe4 */
+  --muted:       240 235 228;
+  --muted-fg:    28 21 16;
+  --border:      154 112 40;
+
+  /* Admin light vars */
+  --ms-bg:           247 243 238;
+  --ms-surface:      255 255 255;
+  --ms-border:       224 216 204;
+  --ms-primary:      154 112 40;
+  --ms-primary-dark: 120 88 28;
+  --ms-navy:         28 21 16;
+  --ms-text:         28 21 16;
+  --ms-green:        22 163 74;
+  --ms-orange:       234 88 12;
+  --ms-red:          220 38 38;
+  --ms-sidebar:      240 235 228;
+}
+
 @layer base {
-  html { @apply bg-ms-bg text-ms-text; }
+  html { background-color: rgb(var(--bg)); color: rgb(var(--fg)); }
   body { @apply font-sans antialiased; }
   * { @apply box-border; }
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 999px; }
-  ::-webkit-scrollbar-thumb:hover { background: #3a3a3a; }
+  ::-webkit-scrollbar-thumb { background: rgb(var(--border) / 0.4); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--border) / 0.7); }
   .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -38,10 +91,29 @@
   /* ── Landing page utilities ──────────────────────── */
   .blueprint-grid {
     background-image:
-      linear-gradient(rgba(200,168,106,0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(200,168,106,0.04) 1px, transparent 1px);
+      linear-gradient(rgb(var(--border) / 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(var(--border) / 0.06) 1px, transparent 1px);
     background-size: 40px 40px;
   }
   .glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
   .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
 }
+
+/* ─── Light mode specific tweaks ──────────────────────────────────── */
+html.light .ms-btn { color: #ffffff; }
+
+html.light [style*="background: #080808"],
+html.light [style*="background:#080808"] { background: rgb(var(--ms-navy)) !important; }
+html.light [style*="background: #0a0a0a"],
+html.light [style*="background:#0a0a0a"] { background: rgb(var(--ms-sidebar)) !important; }
+html.light [style*="background: #0c0c0c"],
+html.light [style*="background:#0c0c0c"] { background: rgb(var(--bg)) !important; }
+html.light [style*="background: #0e0e0e"],
+html.light [style*="background:#0e0e0e"] { background: rgb(var(--ms-sidebar)) !important; }
+html.light [style*="background: #111"],
+html.light [style*="background:#111"] { background: rgb(var(--card)) !important; }
+html.light [style*="background: #111111"] { background: rgb(var(--card)) !important; }
+html.light [style*="background: #0a0a0a"] { background: rgb(var(--ms-sidebar)) !important; }
+
+/* Hero section panel light override */
+html.light .hero-router-panel { background: #f0ece4 !important; }

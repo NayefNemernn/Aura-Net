@@ -97,7 +97,7 @@ export default function HeroSection() {
                 }}>
 
                 {/* Light product backdrop */}
-                <div style={{ background: '#f0ece4', padding: '28px 20px 0' }}>
+                <div style={{ background: 'rgb(var(--card))', padding: '28px 20px 0' }}>
                   {/* Corner marks over light bg */}
                   {[
                     { top: 8, left: 8 },
@@ -122,7 +122,7 @@ export default function HeroSection() {
 
                 {/* Dark spec strip at the bottom */}
                 <div className="flex items-center justify-between px-5 py-3"
-                  style={{ background: '#0e0e0e', borderTop: '1px solid rgba(200,168,106,0.2)' }}>
+                  style={{ background: 'rgb(var(--bg))', borderTop: '1px solid rgb(var(--border) / 0.2)' }}>
                   {[
                     { label: 'Standard', value: 'Wi-Fi 6' },
                     { label: 'Speed',    value: '1 Gbps'  },
