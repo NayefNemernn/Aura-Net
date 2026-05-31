@@ -42,13 +42,8 @@ export default function Navbar() {
         <div className="w-full px-6 lg:px-16 xl:px-24">
           <div className="flex items-center justify-between h-16 lg:h-20">
             {/* Logo */}
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-sm border border-primary/40 flex items-center justify-center">
-                <span className="font-serif text-primary font-bold text-sm">A</span>
-              </div>
-              <span className="font-mono font-bold text-xs tracking-[0.25em] text-foreground uppercase">
-                Aura<span className="text-primary">Net</span>
-              </span>
+            <div className="flex items-center">
+              <img src="/logo.png" alt="Aura Net" className="h-12 w-auto object-contain" />
             </div>
 
             {/* Desktop links */}

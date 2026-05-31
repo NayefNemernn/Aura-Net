@@ -64,13 +64,8 @@ export default function Layout() {
       <header className="h-14 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-20 border-b border-ms-border"
         style={{ background: '#080808' }}>
         {/* Logo */}
-        <div className="flex items-center gap-2.5 mr-2 flex-shrink-0">
-          <div className="w-7 h-7 rounded-sm border border-ms-blue/40 flex items-center justify-center">
-            <span className="font-serif text-ms-blue font-bold text-xs">A</span>
-          </div>
-          <span className="font-mono font-bold text-[11px] tracking-[0.2em] text-ms-text uppercase hidden sm:block">
-            Aura<span className="text-ms-blue">Net</span>
-          </span>
+        <div className="flex items-center mr-2 flex-shrink-0">
+          <img src="/logo.png" alt="Aura Net" className="h-10 w-auto object-contain" />
         </div>
 
         {/* Desktop nav */}

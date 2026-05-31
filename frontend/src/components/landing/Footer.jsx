@@ -10,13 +10,8 @@ export default function Footer() {
       <div className="w-full px-6 lg:px-16 xl:px-24">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-sm border border-primary/40 flex items-center justify-center">
-              <span className="font-serif text-primary font-bold text-xs">A</span>
-            </div>
-            <span className="font-mono font-bold text-[10px] tracking-[0.3em] text-foreground/60 uppercase">
-              Aura<span className="text-primary">Net</span>
-            </span>
+          <div className="flex items-center">
+            <img src="/logo.png" alt="Aura Net" className="h-8 w-auto object-contain opacity-80" />
           </div>
 
           {/* Links */}
