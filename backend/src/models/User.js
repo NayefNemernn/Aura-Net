@@ -42,6 +42,7 @@ const UserSchema = new mongoose.Schema({
 
   telegramToken:  { type: String, default: '' },
   telegramChatId: { type: String, default: '' },
+  lastTelegramAt: { type: Date },   // throttle: forward alerts to Telegram at most once per hour
   telegramAlerts: {
     syncOk:       { type: Boolean, default: true },
     expirySoon:   { type: Boolean, default: true },

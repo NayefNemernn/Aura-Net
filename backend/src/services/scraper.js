@@ -434,9 +434,16 @@ async function evaluateRules(user, freshClients, prevMap) {
 
   if (toCreate.length) await Alert.insertMany(toCreate);
 
-  // Forward to Telegram
-  for (const a of toCreate) {
-    await tg.sendAlert(user, a.sev, a.title, a.detail).catch(() => {});
+  // Forward to Telegram at most once per hour, even if syncs run more often.
+  // (55-min window so an on-the-hour cron never skips an hour to clock drift.)
+  const THROTTLE_MS = 55 * 60 * 1000;
+  const lastTg = user.lastTelegramAt ? user.lastTelegramAt.getTime() : 0;
+  if (toCreate.length && Date.now() - lastTg >= THROTTLE_MS) {
+    for (const a of toCreate) {
+      await tg.sendAlert(user, a.sev, a.title, a.detail).catch(() => {});
+    }
+    user.lastTelegramAt = new Date();
+    await user.save().catch(() => {});
   }
 
   return toCreate.length;
