@@ -35,6 +35,7 @@ function WhatsAppTab() {
   const [sending,     setSending]     = useState(false);
   const [result,      setResult]      = useState(null);
   const [recTab,      setRecTab]      = useState('compose'); // 'compose' | 'reminders'
+  const [testingId,   setTestingId]   = useState(null);
   const pollRef = useRef(null);
 
   const pollWa = useCallback(() => {
@@ -62,8 +63,17 @@ function WhatsAppTab() {
   const waDisconnect = () => { api.post('/api/whatsapp/disconnect').then(() => setWa({ status: 'disconnected', qr: null })); };
 
   const toggleSelect = id => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
-  const selectAll    = () => setSelected(recipients.map(c => c._id));
-  const clearAll     = () => setSelected([]);
+  const allSelected  = recipients.length > 0 && selected.length === recipients.length;
+  const toggleAll    = () => setSelected(allSelected ? [] : recipients.map(c => c._id));
+
+  const testReminder = async (c) => {
+    setTestingId(c._id); setResult(null);
+    try {
+      const { data } = await api.post('/api/whatsapp/test-reminder', { clientId: c._id });
+      setResult({ success: true, sent: 1, note: `Test reminder sent to ${c.name || c.username}` });
+    } catch (e) { setResult({ success: false, error: e.response?.data?.error || e.message }); }
+    finally { setTestingId(null); }
+  };
 
   const toggleReminder = async (c) => {
     const { data } = await api.patch(`/api/clients/${c._id}/reminders`);
@@ -135,10 +145,13 @@ function WhatsAppTab() {
           <div className="ms-card overflow-hidden">
             <div className="px-4 py-3 border-b border-ms-border flex items-center justify-between">
               <span className="font-semibold text-sm text-ms-text">Recipients</span>
-              <div className="flex gap-2 text-xs">
-                <button onClick={selectAll} className="text-ms-blue hover:underline">All</button>
-                <button onClick={clearAll}  className="text-ms-sub hover:text-ms-text">Clear</button>
-                <span className="text-ms-dim">{selected.length} selected</span>
+              <div className="flex items-center gap-2 text-xs">
+                <label className="flex items-center gap-1.5 cursor-pointer text-ms-blue font-semibold">
+                  <input type="checkbox" checked={allSelected} onChange={toggleAll}
+                    className="w-3.5 h-3.5 accent-ms-blue" />
+                  Select all
+                </label>
+                <span className="text-ms-dim">· {selected.length} selected</span>
               </div>
             </div>
             <div className="px-3 py-2 border-b border-ms-border">
@@ -190,7 +203,7 @@ function WhatsAppTab() {
           <div className="px-4 py-3 border-b border-ms-border flex items-center justify-between">
             <div>
               <div className="font-semibold text-sm text-ms-text">Auto-Reminder Recipients</div>
-              <div className="text-xs text-ms-dim mt-0.5">Clients who will receive automatic expiry reminders (today & 2 days before)</div>
+              <div className="text-xs text-ms-dim mt-0.5">Auto reminders go out daily at 09:00 to clients expiring today & in 2 days. “Test” sends one message now (any expiry).</div>
             </div>
             <button onClick={sendReminders} disabled={sending || wa.status !== 'ready'}
               className="ms-btn text-xs px-3 py-1.5 flex items-center gap-1.5">
@@ -200,7 +213,7 @@ function WhatsAppTab() {
           </div>
           {result && (
             <div className={`px-4 py-2 text-sm border-b border-ms-border ${result.success ? 'text-ms-green' : 'text-ms-red'}`}>
-              {result.success ? `✓ Sent ${result.sent} reminder${result.sent !== 1 ? 's' : ''}` : `✕ ${result.error}`}
+              {result.success ? `✓ ${result.note || `Sent ${result.sent} reminder${result.sent !== 1 ? 's' : ''}`}` : `✕ ${result.error}`}
             </div>
           )}
           <div className="divide-y divide-ms-border max-h-[500px] overflow-y-auto">
@@ -214,6 +227,11 @@ function WhatsAppTab() {
                     {c.expiry && <div className={`text-xs mt-0.5 ${isExpiringSoon(c.expiry) ? 'text-ms-orange font-semibold' : 'text-ms-dim'}`}>Expires: {c.expiry}</div>}
                   </div>
                   <span className={`pill-${c.status}`}>{c.status}</span>
+                  <button onClick={() => testReminder(c)} disabled={testingId === c._id || wa.status !== 'ready'}
+                    title={wa.status !== 'ready' ? 'Connect WhatsApp first' : 'Send a test reminder to this client now'}
+                    className="ms-btn-outline text-[11px] px-2.5 py-1 disabled:opacity-40 flex-shrink-0">
+                    {testingId === c._id ? '…' : 'Test'}
+                  </button>
                   <button onClick={() => toggleReminder(c)}
                     className={`w-10 h-5 rounded-full relative flex-shrink-0 transition-colors ${c.remindersEnabled !== false ? 'bg-ms-blue' : 'bg-ms-border'}`}>
                     <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${c.remindersEnabled !== false ? 'translate-x-5' : 'translate-x-0.5'}`} />
