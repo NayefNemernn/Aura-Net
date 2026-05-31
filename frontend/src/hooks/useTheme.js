@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 
 export function useTheme() {
   const [theme, setTheme] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('aura-theme') || 'dark';
-    }
-    return 'dark';
+    if (typeof window === 'undefined') return 'dark';
+    // Read from localStorage first, then fall back to the class already on <html>
+    // (set by the flash-prevention inline script in index.html)
+    const stored = localStorage.getItem('aura-theme');
+    if (stored) return stored;
+    return document.documentElement.classList.contains('light') ? 'light' : 'dark';
   });
 
   useEffect(() => {

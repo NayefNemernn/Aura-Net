@@ -22,18 +22,18 @@ export default function CameraCard({ camera, index }) {
     >
       <div className="relative bg-card/60 border border-border rounded-sm overflow-hidden hover:border-primary/30 transition-all duration-500">
         {/* Image area */}
-        <div className="relative flex items-center justify-center bg-card" style={{ height: 220 }}>
+        <div className="relative flex items-center justify-center bg-card" style={{ height: 250 }}>
           <div className="absolute inset-0 pointer-events-none"
             style={{ background: 'radial-gradient(circle at 50% 40%, rgba(200,168,106,0.07) 0%, transparent 65%)' }} />
           <img
             src={camera.image}
             alt={camera.name}
-            className="h-40 object-contain group-hover:scale-105 transition-transform duration-700 relative z-10"
+            className="h-52 object-contain group-hover:scale-105 transition-transform duration-700 relative z-10"
             style={{ filter: 'drop-shadow(0 12px 32px rgba(200,168,106,0.2))' }}
           />
-          {/* Bottom fade */}
+          {/* Bottom fade — logo gold, themed for light/dark */}
           <div className="absolute bottom-0 left-0 right-0 h-12 pointer-events-none"
-            style={{ background: 'linear-gradient(to top, #111, transparent)' }} />
+            style={{ background: 'linear-gradient(to top, rgb(var(--primary) / 0.28), transparent)' }} />
 
           {/* Resolution badge */}
           <div className="absolute top-3 right-3">

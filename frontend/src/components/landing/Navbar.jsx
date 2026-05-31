@@ -38,10 +38,10 @@ export default function Navbar() {
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-500"
         style={{
           background: scrolled
-            ? 'rgba(12,12,12,0.95)'
-            : 'rgba(12,12,12,0.7)',
+            ? 'rgb(var(--bg) / 0.95)'
+            : 'rgb(var(--bg) / 0.7)',
           backdropFilter: 'blur(12px)',
-          borderBottom: scrolled ? '1px solid rgba(200,168,106,0.15)' : 'none',
+          borderBottom: scrolled ? '1px solid rgb(var(--primary) / 0.15)' : 'none',
         }}
       >
         <div className="w-full px-6 lg:px-16 xl:px-24">
@@ -51,9 +51,9 @@ export default function Navbar() {
               <img src="/logo-icon.png" alt="" className="h-12 lg:h-14 w-auto object-contain" />
               <div className="leading-none">
                 <div className="font-black text-lg lg:text-xl tracking-widest uppercase" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.12em' }}>
-                  <span style={{ color: '#f0ece4' }}>AURA</span><span style={{ color: '#c8a86a' }}>NET</span>
+                  <span style={{ color: 'rgb(var(--fg))' }}>AURA</span><span style={{ color: 'rgb(var(--primary))' }}>NET</span>
                 </div>
-                <div className="font-mono text-[8px] tracking-[0.25em] uppercase mt-0.5" style={{ color: 'rgba(200,168,106,0.6)' }}>
+                <div className="font-mono text-[8px] tracking-[0.25em] uppercase mt-0.5" style={{ color: 'rgb(var(--primary) / 0.7)' }}>
                   Internet · Surveillance
                 </div>
               </div>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -10,8 +10,9 @@
     <!-- Prevent flash of wrong theme -->
     <script>
       (function(){
+        // <html> defaults to class="light"; only strip it for an explicit dark choice
         var t = localStorage.getItem('aura-theme');
-        if (t === 'light') document.documentElement.classList.add('light');
+        if (t === 'dark') document.documentElement.classList.remove('light');
       })();
     </script>
   </head>

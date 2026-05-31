@@ -99,7 +99,6 @@ export default function ContactSection({ contact = {} }) {
                       className={inputClass + ' appearance-none cursor-pointer'}
                       value={form.subject}
                       onChange={e => setF('subject', e.target.value)}
-                      style={{ background: '#111' }}
                     >
                       <option value="">Select service…</option>
                       <option>New Internet Connection</option>

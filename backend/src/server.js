@@ -64,7 +64,10 @@ app.use('/api/messaging',  messagingRoutes);
 app.use('/api/bms',        bmsActionsRoutes);
 app.use('/api/contact',    contactRoutes);
 app.use('/api/landing',    landingRoutes);
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  next();
+}, express.static(path.join(__dirname, '../uploads')));
 
 app.get('/api/health', (req, res) => res.json({
   status: 'ok', service: 'Aura Net API', version: '1.0.0', time: new Date().toISOString()
