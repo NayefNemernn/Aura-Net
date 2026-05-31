@@ -1,0 +1,11 @@
+# railway.toml — frontend (Vite SPA) service config
+# In Railway, create a service from this repo and set Root Directory to "frontend".
+# Nixpacks runs `npm install` + `npm run build`, then we serve the static dist/.
+
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npx serve -s dist -l $PORT"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

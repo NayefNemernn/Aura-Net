@@ -32,54 +32,58 @@ auranet/
 
 ---
 
-## Deploy in 4 steps
+## Deploy to Railway (backend + frontend + MongoDB)
+
+Both folders deploy as separate Railway services from the same GitHub repo. Each has its
+own `railway.toml` (Nixpacks). The backend exposes `/api/health` for healthchecks; the
+frontend builds `dist/` and serves it with `serve` (SPA fallback included).
 
 ### Step 1 — Push to GitHub
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit — Aura Net v1.0"
-git remote add origin https://github.com/YOUR_USER/auranet.git
-git push -u origin main
+git push          # repo: https://github.com/NayefNemernn/Aura-Net
 ```
 
-### Step 2 — Railway (backend + MongoDB)
+### Step 2 — Create the project + database
 
-1. Go to [railway.app](https://railway.app) → **New Project**
-2. Click **Deploy from GitHub repo** → select your repo → set **Root Directory** to `backend`
-3. Railway auto-detects Node.js and runs `npm start`
-4. Click **+ New** → **Database** → **MongoDB** — Railway adds it to your project and injects `MONGODB_URL` automatically
-5. Go to your backend service → **Variables** → add these:
+1. [railway.app](https://railway.app) → **New Project** → **Deploy from GitHub repo** → select **Aura-Net**.
+2. On the created service: **Settings → Root Directory** = `backend`.
+3. **+ New → Database → MongoDB** — Railway injects `MONGODB_URL` into the project.
+
+### Step 3 — Backend service variables
+
+Backend service → **Variables**:
 
 | Variable             | Value                                             |
 |----------------------|---------------------------------------------------|
-| `MONGODB_URL`        | *(auto-injected by Railway MongoDB plugin)*        |
-| `JWT_SECRET`         | run `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
-| `JWT_REFRESH_SECRET` | same command again, different value               |
+| `MONGODB_URL`        | reference the MongoDB plugin variable             |
+| `JWT_SECRET`         | `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"` |
+| `JWT_REFRESH_SECRET` | run again, different value                        |
 | `BMS_URL`            | `https://bms.libatech.net.lb`                     |
-| `BMS_USER`           | `nasri`                                           |
-| `BMS_PASS`           | your BMS password                                 |
-| `FRONTEND_URL`       | your Vercel URL (set after step 3)                |
+| `BMS_USER` / `BMS_PASS` | your BMS login                                 |
+| `FRONTEND_URL`       | frontend URL(s), comma-separated (set after step 4) |
 | `NODE_ENV`           | `production`                                      |
 
-6. Click **Deploy** — your API will be live at `https://YOUR-APP.up.railway.app`
+### Step 4 — Frontend service
 
-### Step 3 — Vercel (frontend)
+1. Same project: **+ New → GitHub Repo → Aura-Net** again.
+2. That service → **Settings → Root Directory** = `frontend`.
+3. **Variables** → `VITE_API_URL` = the backend's public URL (Railway URL or `https://api.yourdomain.com`).
+   Vite inlines this **at build time** — set it before deploy and redeploy if it changes.
 
-1. Go to [vercel.com](https://vercel.com) → **Add New Project** → import your GitHub repo
-2. Set **Root Directory** to `frontend`
-3. Add environment variable:
-   - `VITE_API_URL` = your Railway backend URL (e.g. `https://auranet-backend.up.railway.app`)
-4. Click **Deploy**
+### Step 5 — Custom domain
 
-### Step 4 — Update CORS
+1. Frontend service → **Settings → Networking → Custom Domain** → add `yourdomain.com` (and `www.yourdomain.com`).
+2. Railway shows a **CNAME target** — add it at your DNS registrar. For an apex/root domain use your
+   registrar's ALIAS/ANAME (or the record Railway suggests).
+3. *(Optional)* give the backend `api.yourdomain.com` the same way.
+4. Set backend `FRONTEND_URL` = `https://yourdomain.com,https://www.yourdomain.com` and, if you added an
+   API subdomain, frontend `VITE_API_URL` = `https://api.yourdomain.com`. **Redeploy both.**
 
-Go back to Railway → backend service → Variables → set:
-```
-FRONTEND_URL = https://your-app.vercel.app
-```
-Then redeploy.
+> **Puppeteer / BMS scraping note:** the backend runs headless Chromium. A plain Nixpacks build may be
+> missing the system libraries Chromium needs, so `/api/sync` can fail even when `/api/health` is green.
+> If scraping errors on Railway, the fix is a Dockerfile based on a Puppeteer image (or installing
+> Chromium + libs) — ask and I'll add it.
 
 ---
 

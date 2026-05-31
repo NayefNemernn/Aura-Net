@@ -34,7 +34,8 @@ app.use(helmet());
 app.use(cors({
   origin: (origin, cb) => {
     const allowed = [
-      process.env.FRONTEND_URL,
+      // FRONTEND_URL may be a comma-separated list (e.g. apex + www domains)
+      ...(process.env.FRONTEND_URL || '').split(',').map(s => s.trim()),
       'http://localhost:5173',
       'http://localhost:4173',
     ].filter(Boolean);

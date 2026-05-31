@@ -1,5 +1,5 @@
-# railway.toml — backend service config
-# Place this file in the backend/ directory
+# railway.toml — backend (Express API) service config
+# In Railway, create a service from this repo and set Root Directory to "backend".
 
 [build]
 builder = "NIXPACKS"
@@ -10,6 +10,3 @@ healthcheckPath = "/api/health"
 healthcheckTimeout = 60
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
-
-[[services]]
-name = "auranet-backend"
