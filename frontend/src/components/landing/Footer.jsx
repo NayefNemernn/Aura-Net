@@ -10,8 +10,13 @@ export default function Footer() {
       <div className="w-full px-6 lg:px-16 xl:px-24">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo */}
-          <div className="flex items-center">
-            <img src="/logo.png" alt="Aura Net" className="h-8 w-auto object-contain opacity-80" />
+          <div className="flex items-center gap-2">
+            <img src="/logo-icon.png" alt="" className="h-9 w-auto object-contain opacity-75" />
+            <div className="leading-none">
+              <div className="font-black text-sm tracking-widest uppercase opacity-70" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.1em' }}>
+                <span className="text-foreground">AURA</span><span className="text-primary">NET</span>
+              </div>
+            </div>
           </div>
 
           {/* Links */}

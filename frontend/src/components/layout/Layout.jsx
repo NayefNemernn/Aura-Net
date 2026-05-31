@@ -64,8 +64,16 @@ export default function Layout() {
       <header className="h-14 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-20 border-b border-ms-border"
         style={{ background: '#080808' }}>
         {/* Logo */}
-        <div className="flex items-center mr-2 flex-shrink-0">
-          <img src="/logo.png" alt="Aura Net" className="h-10 w-auto object-contain" />
+        <div className="flex items-center gap-2 mr-2 flex-shrink-0">
+          <img src="/logo-icon.png" alt="" className="h-10 w-auto object-contain" />
+          <div className="leading-none hidden sm:block">
+            <div className="font-black text-sm tracking-widest uppercase" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.12em' }}>
+              <span className="text-ms-text">AURA</span><span className="text-ms-blue">NET</span>
+            </div>
+            <div className="font-mono text-[7px] tracking-[0.2em] uppercase mt-0.5 text-ms-dim">
+              Internet · Surveillance
+            </div>
+          </div>
         </div>
 
         {/* Desktop nav */}

@@ -27,8 +27,16 @@ export default function LoginPage() {
 
       <div className="w-full max-w-sm relative z-10">
         <div className="text-center mb-8">
-          <div className="mb-6">
-            <img src="/logo.png" alt="Aura Net" className="h-20 w-auto object-contain mx-auto" />
+          <div className="flex items-center justify-center gap-3 mb-6">
+            <img src="/logo-icon.png" alt="" className="h-16 w-auto object-contain" />
+            <div className="leading-none text-left">
+              <div className="font-black text-2xl tracking-widest uppercase" style={{ fontFamily: 'Inter, system-ui, sans-serif', letterSpacing: '0.1em' }}>
+                <span className="text-ms-text">AURA</span><span className="text-ms-blue">NET</span>
+              </div>
+              <div className="font-mono text-[9px] tracking-[0.25em] uppercase mt-1 text-ms-dim">
+                Internet · Surveillance
+              </div>
+            </div>
           </div>
           <h1 className="font-serif font-normal text-2xl text-ms-text mb-1">Welcome back</h1>
           <p className="font-mono text-[10px] tracking-[0.2em] text-ms-dim uppercase">Sign in to your dashboard</p>
