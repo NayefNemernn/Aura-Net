@@ -8,6 +8,7 @@ import SectionDivider  from '../components/landing/SectionDivider';
 import PackagesSection from '../components/landing/PackagesSection';
 import CamerasSection  from '../components/landing/CamerasSection';
 import HardwareSection from '../components/landing/HardwareSection';
+import MediaSection    from '../components/landing/MediaSection';
 import ContactSection  from '../components/landing/ContactSection';
 import Footer          from '../components/landing/Footer';
 
@@ -48,6 +49,10 @@ export default function LandingPage() {
       />
 
       <HardwareSection />
+
+      {content?.media?.length > 0 && (
+        <MediaSection content={content} />
+      )}
 
       <ContactSection contact={content?.contact} />
 
