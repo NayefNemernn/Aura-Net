@@ -37,13 +37,11 @@ export default function Layout() {
     } finally { setSyncing(false); }
   }, []);
 
-  // Auto-sync every 60 seconds
   const syncingRef = useRef(false);
   useEffect(() => {
     const run = async () => {
       if (syncingRef.current) return;
-      syncingRef.current = true;
-      setSyncing(true);
+      syncingRef.current = true; setSyncing(true);
       try {
         const { data } = await api.post('/api/sync');
         if (data.success) {
@@ -62,86 +60,114 @@ export default function Layout() {
   return (
     <div className="flex flex-col h-screen bg-ms-bg overflow-hidden">
 
-      {/* ── Top header ─────────────────────────────────────────────── */}
-      <header className="h-12 bg-ms-navy flex items-center px-3 gap-3 flex-shrink-0 z-20">
-        <div className="flex items-center gap-2 mr-2">
-          <img src="/logo.jpg" alt="Aura Net" className="h-7 w-7 rounded-full object-cover border border-white/20" />
-          <span className="text-white font-semibold text-sm tracking-tight hidden sm:block">Aura Net</span>
+      {/* ── Top header ─────────────────────────────────────────── */}
+      <header className="h-14 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-20 border-b border-ms-border"
+        style={{ background: '#080808' }}>
+        {/* Logo */}
+        <div className="flex items-center gap-2.5 mr-2 flex-shrink-0">
+          <div className="w-7 h-7 rounded-sm border border-ms-blue/40 flex items-center justify-center">
+            <span className="font-serif text-ms-blue font-bold text-xs">A</span>
+          </div>
+          <span className="font-mono font-bold text-[11px] tracking-[0.2em] text-ms-text uppercase hidden sm:block">
+            Aura<span className="text-ms-blue">Net</span>
+          </span>
         </div>
 
-        {/* Desktop nav links */}
+        {/* Desktop nav */}
         <nav className="hidden md:flex items-center gap-1 flex-1">
           {NAV.map(({ to, label, end }) => (
             <NavLink key={to} to={to} end={end}
               className={({ isActive }) =>
-                `px-3 py-1.5 text-sm rounded transition-colors ${isActive ? 'bg-white/20 text-white font-semibold' : 'text-white/70 hover:text-white hover:bg-white/10'}`
+                `px-3 py-1.5 font-mono text-[10px] tracking-[0.15em] uppercase rounded-sm transition-colors ${
+                  isActive
+                    ? 'bg-ms-blue-light text-ms-blue font-semibold'
+                    : 'text-ms-dim hover:text-ms-text hover:bg-ms-sidebar'
+                }`
               }>{label}</NavLink>
           ))}
         </nav>
 
+        {/* Right actions */}
         <div className="ml-auto flex items-center gap-2">
           <button onClick={sync} disabled={syncing}
-            className="flex items-center gap-1.5 text-xs font-semibold text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded transition-colors disabled:opacity-50">
+            className="flex items-center gap-1.5 font-mono text-[10px] tracking-wider text-ms-sub hover:text-ms-text border border-ms-border hover:border-ms-blue px-2.5 py-1.5 rounded-sm transition-all disabled:opacity-40">
             {syncing
-              ? <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-              : <RefreshIcon size={13} />}
+              ? <span className="w-3 h-3 border border-ms-blue/30 border-t-ms-blue rounded-full animate-spin" />
+              : <RefreshIcon size={12} />}
             <span className="hidden sm:inline">{syncing ? 'Syncing…' : 'Sync BMS'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 pl-2 border-l border-white/20">
-            <div className="w-7 h-7 rounded-full bg-ms-blue flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0">
+          <div className="flex items-center gap-2 pl-2 border-l border-ms-border">
+            <div className="w-7 h-7 rounded-sm bg-ms-blue flex items-center justify-center font-mono text-[11px] font-bold text-black flex-shrink-0">
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
-            <span className="text-white/80 text-xs hidden lg:block">{user?.name}</span>
-            <button onClick={doLogout} title="Sign out" className="text-white/50 hover:text-white transition-colors ml-0.5">
+            <span className="font-mono text-[10px] text-ms-sub hidden lg:block tracking-wider">{user?.name}</span>
+            <button onClick={doLogout} title="Sign out" className="text-ms-dim hover:text-ms-text transition-colors ml-1">
               <LogoutIcon size={14} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* ── Body ──────────────────────────────────────────────────── */}
+      {/* ── Body ────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar — desktop only */}
-        <aside className="hidden lg:flex w-44 flex-shrink-0 bg-ms-sidebar border-r border-ms-border flex-col">
-          <nav className="flex-1 py-2">
+        {/* Sidebar */}
+        <aside className="hidden lg:flex w-48 flex-shrink-0 flex-col border-r border-ms-border"
+          style={{ background: '#0a0a0a' }}>
+          <nav className="flex-1 py-3 px-2 space-y-0.5">
             {NAV.map(({ to, label, icon: Icon, end }) => (
               <NavLink key={to} to={to} end={end}
                 className={({ isActive }) =>
-                  `flex items-center gap-2.5 mx-2 px-3 py-2 rounded text-sm transition-colors ${
-                    isActive ? 'bg-ms-sidebar-active text-ms-blue font-semibold border-l-2 border-ms-blue' : 'text-ms-sub hover:bg-ms-sidebar-active hover:text-ms-text'
+                  `flex items-center gap-2.5 px-3 py-2.5 rounded-sm font-mono text-[10px] tracking-[0.15em] uppercase transition-all ${
+                    isActive
+                      ? 'bg-ms-blue-light text-ms-blue border-l-2 border-ms-blue pl-[10px]'
+                      : 'text-ms-sub hover:bg-ms-sidebar hover:text-ms-text'
                   }`
                 }>
-                <Icon size={15} />{label}
+                <Icon size={14} />{label}
               </NavLink>
             ))}
           </nav>
+          <div className="p-3 border-t border-ms-border">
+            <a href="/home" target="_blank" rel="noopener"
+              className="flex items-center gap-2 px-3 py-2 font-mono text-[9px] tracking-[0.15em] uppercase text-ms-dim hover:text-ms-blue rounded-sm hover:bg-ms-sidebar transition-all">
+              <GlobeIcon size={12} /> View Site ↗
+            </a>
+          </div>
         </aside>
 
-        {/* Main content — extra bottom padding on mobile for the tab bar */}
-        <main className="flex-1 overflow-y-auto bg-ms-bg pb-16 md:pb-0">
+        {/* Main */}
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 bg-ms-bg">
           <Outlet />
         </main>
       </div>
 
-      {/* ── Mobile Bottom Tab Bar ─────────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-ms-surface border-t border-ms-border z-30 flex safe-area-bottom">
+      {/* ── Mobile Tab Bar ──────────────────────────────────────── */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-ms-border z-30 flex safe-area-bottom"
+        style={{ background: '#080808' }}>
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end}
             className={({ isActive }) =>
-              `flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${isActive ? 'text-ms-blue' : 'text-ms-dim'}`
+              `flex-1 flex flex-col items-center justify-center py-2 gap-0.5 transition-colors ${
+                isActive ? 'text-ms-blue' : 'text-ms-dim'
+              }`
             }>
-            <Icon size={19} />
-            <span className="text-[9px] font-semibold">{label}</span>
+            <Icon size={18} />
+            <span className="font-mono text-[8px] tracking-wider uppercase">{label}</span>
           </NavLink>
         ))}
       </nav>
 
-      {/* ── Toast ─────────────────────────────────────────────────── */}
+      {/* ── Toast ───────────────────────────────────────────────── */}
       {toast && (
-        <div className={`fixed bottom-20 md:bottom-5 right-3 z-50 flex items-center gap-2 px-3 py-2.5 rounded shadow-ms-lg text-sm font-medium border max-w-xs
-          ${toast.type === 'ok' ? 'bg-ms-surface border-ms-green text-ms-text' : 'bg-ms-surface border-ms-red text-ms-text'}`}>
-          {toast.type === 'ok' ? <span className="text-ms-green">✓</span> : <span className="text-ms-red">✕</span>}
+        <div className={`fixed bottom-20 md:bottom-5 right-4 z-50 flex items-center gap-2.5 px-4 py-3 rounded-sm border font-mono text-xs max-w-xs ${
+          toast.type === 'ok'
+            ? 'bg-ms-surface border-ms-green text-ms-text'
+            : 'bg-ms-surface border-ms-red text-ms-text'
+        }`}>
+          <span className={toast.type === 'ok' ? 'text-ms-green' : 'text-ms-red'}>
+            {toast.type === 'ok' ? '✓' : '✕'}
+          </span>
           <span className="truncate">{toast.msg}</span>
         </div>
       )}

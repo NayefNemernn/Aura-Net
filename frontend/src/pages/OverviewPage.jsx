@@ -50,27 +50,31 @@ export default function OverviewPage() {
   }));
 
   const pieData = [
-    { name: 'Active',   value: activeCount,   color: '#107c10' },
-    { name: 'Inactive', value: inactiveCount, color: '#a80000' },
+    { name: 'Active',   value: activeCount,   color: '#4ade80' },
+    { name: 'Inactive', value: inactiveCount, color: '#f87171' },
   ].filter(d => d.value > 0);
 
   return (
-    <div className="p-3 sm:p-6 max-w-7xl">
+    <div className="p-4 sm:p-6">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
         <div>
-          <h1 className="font-semibold text-2xl text-ms-text tracking-tight">Overview</h1>
-          <p className="text-ms-sub text-sm mt-0.5">
-            {sync ? `Last sync: ${new Date(sync.createdAt).toLocaleString()}` : 'No sync yet — click Sync BMS above'}
+          <div className="flex items-center gap-3 mb-1">
+            <div className="h-px w-5 bg-ms-blue opacity-70" />
+            <span className="font-mono text-[9px] tracking-[0.3em] text-ms-blue uppercase">Dashboard</span>
+          </div>
+          <h1 className="font-serif font-normal text-2xl text-ms-text">Overview</h1>
+          <p className="font-mono text-[10px] text-ms-dim mt-1 tracking-wider">
+            {sync ? `Last sync: ${new Date(sync.createdAt).toLocaleString()}` : 'No sync yet'}
           </p>
         </div>
-        <button onClick={() => nav('/reports')} className="ms-btn-outline text-sm">
+        <button onClick={() => nav('/reports')} className="ms-btn-outline text-xs">
           Export Report
         </button>
       </div>
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-4 sm:mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mb-5">
         {[
           { label: 'Total Clients', value: total,         color: 'text-ms-blue',   sub: 'All synced records' },
           { label: 'Active',        value: activeCount,   color: 'text-ms-green',  sub: total ? `${Math.round(activeCount/total*100)}% of total` : '—' },
@@ -78,9 +82,9 @@ export default function OverviewPage() {
           { label: 'Open Alerts',   value: alerts.filter(a => !a.dismissed).length, color: 'text-ms-red', sub: `${alerts.filter(a=>a.sev==='critical').length} critical` },
         ].map(c => (
           <div key={c.label} className="ms-card p-4">
-            <div className="text-xs text-ms-dim font-semibold uppercase tracking-wider mb-2">{c.label}</div>
-            <div className={`font-semibold text-3xl tracking-tight mb-1 ${c.color}`}>{c.value ?? '—'}</div>
-            <div className="text-[11px] text-ms-dim">{c.sub}</div>
+            <div className="font-mono text-[9px] text-ms-dim uppercase tracking-[0.2em] mb-2">{c.label}</div>
+            <div className={`font-serif font-normal text-3xl mb-1 ${c.color}`}>{c.value ?? '—'}</div>
+            <div className="font-mono text-[10px] text-ms-dim">{c.sub}</div>
           </div>
         ))}
       </div>
@@ -89,16 +93,16 @@ export default function OverviewPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
         <div className="ms-card p-4 lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <span className="font-semibold text-sm text-ms-text">Client trend — last 12 months</span>
+            <span className="font-mono text-[10px] tracking-[0.2em] text-ms-sub uppercase">Client trend — last 12 months</span>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <XAxis dataKey="m" tick={{ fontSize: 11, fill: '#767676' }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: '#767676' }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e0e0e0', borderRadius: 4, fontSize: 12, color: '#1b1b1b' }} cursor={{ fill: 'rgba(0,0,0,0.04)' }} />
-              <Bar dataKey="v" radius={[3,3,0,0]}>
+              <XAxis dataKey="m" tick={{ fontSize: 10, fill: 'rgba(240,236,228,0.35)', fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 10, fill: 'rgba(240,236,228,0.35)', fontFamily: 'monospace' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(200,168,106,0.2)', borderRadius: 2, fontSize: 11, color: '#f0ece4', fontFamily: 'monospace' }} cursor={{ fill: 'rgba(200,168,106,0.05)' }} />
+              <Bar dataKey="v" radius={[2,2,0,0]}>
                 {barData.map((_, i) => (
-                  <Cell key={i} fill={i === barData.length-1 ? '#0078d4' : 'rgba(0,120,212,0.25)'} />
+                  <Cell key={i} fill={i === barData.length-1 ? '#c8a86a' : 'rgba(200,168,106,0.25)'} />
                 ))}
               </Bar>
             </BarChart>
@@ -106,7 +110,7 @@ export default function OverviewPage() {
         </div>
 
         <div className="ms-card p-4">
-          <span className="font-semibold text-sm text-ms-text block mb-4">Client status</span>
+          <span className="font-mono text-[10px] tracking-[0.2em] text-ms-sub uppercase block mb-4">Client status</span>
           {total > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={150}>
@@ -114,7 +118,7 @@ export default function OverviewPage() {
                   <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={40} outerRadius={65} paddingAngle={3}>
                     {pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
                   </Pie>
-                  <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e0e0e0', borderRadius: 4, fontSize: 12, color: '#1b1b1b' }} />
+                  <Tooltip contentStyle={{ background: '#111', border: '1px solid rgba(200,168,106,0.2)', borderRadius: 2, fontSize: 11, color: '#f0ece4', fontFamily: 'monospace' }} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="space-y-2 mt-2">
@@ -138,8 +142,8 @@ export default function OverviewPage() {
       {/* Recent alerts */}
       <div className="ms-card">
         <div className="flex items-center justify-between px-4 py-3 border-b border-ms-border">
-          <span className="font-semibold text-sm text-ms-text">Recent alerts</span>
-          <button onClick={() => nav('/alerts')} className="text-xs text-ms-blue hover:underline">View all →</button>
+          <span className="font-mono text-[10px] tracking-[0.2em] text-ms-sub uppercase">Recent Alerts</span>
+          <button onClick={() => nav('/alerts')} className="font-mono text-[10px] text-ms-blue hover:underline tracking-wider">View all →</button>
         </div>
         {alerts.length === 0 ? (
           <div className="text-center py-10 text-ms-dim text-sm">No alerts — all clear, or sync to evaluate rules</div>
@@ -174,7 +178,7 @@ function AlertRow({ alert: a }) {
 function PageLoader() {
   return (
     <div className="flex items-center justify-center h-64">
-      <div className="w-6 h-6 border-2 border-ms-border border-t-ms-blue rounded-full animate-spin" />
+      <div className="w-5 h-5 border border-ms-border border-t-ms-blue rounded-full animate-spin" />
     </div>
   );
 }
