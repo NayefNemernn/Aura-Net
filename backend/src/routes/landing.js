@@ -53,12 +53,14 @@ router.get('/', async (req, res) => {
 // ── Admin — text content ────────────────────────────────────────────
 // PUT /api/landing
 router.put('/', auth, async (req, res) => {
-  const { hero, offers, plans, contact, sectionTitles } = req.body;
+  const { hero, offers, plans, packages, cameras, contact, sectionTitles } = req.body;
   try {
     const update = {};
     if (hero)          update.hero          = hero;
     if (offers)        update.offers        = offers;
     if (plans)         update.plans         = plans;
+    if (packages)      update.packages      = packages;
+    if (cameras)       update.cameras       = cameras;
     if (contact)       update.contact       = contact;
     if (sectionTitles) update.sectionTitles = sectionTitles;
     const doc = await LandingContent.findOneAndUpdate(

@@ -72,7 +72,7 @@ const cameras = [
 const IMG_MAP = ['/products/cam-ptz.png', '/products/cam-dome.png', '/products/cam-bullet.png', '/products/cam-dome.png'];
 
 export default function CamerasSection({ content }) {
-  const raw = content?.cameras || cameras;
+  const raw = content?.cameras?.length ? content.cameras : cameras;
   const list = raw.map((c, i) => ({ ...c, image: c.image || IMG_MAP[i % IMG_MAP.length] }));
   const title = content?.sectionTitles?.cameras || 'The Sentinel View';
 

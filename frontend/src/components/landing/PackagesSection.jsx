@@ -80,7 +80,7 @@ const SPECS_MAP = [
 ];
 
 export default function PackagesSection({ content }) {
-  const raw = content?.packages || packages;
+  const raw = content?.packages?.length ? content.packages : packages;
   const pkgs = raw.map((p, i) => ({
     ...p,
     routerImage: ROUTER_IMG,

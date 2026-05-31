@@ -167,7 +167,7 @@ function HeroTab({ content, onSave, saving }) {
 /* ─── Packages Tab ────────────────────────────────────────────────── */
 function PackagesTab({ content, onSave, saving }) {
   const [packages, setPackages] = useState(
-    (content.packages || DEFAULT_PACKAGES).map(p => ({ ...p, features: [...(p.features || [])] }))
+    (content.packages?.length ? content.packages : DEFAULT_PACKAGES).map(p => ({ ...p, features: [...(p.features || [])] }))
   );
   const [open, setOpen] = useState(null);
 
@@ -267,7 +267,7 @@ function PackagesTab({ content, onSave, saving }) {
 /* ─── Cameras Tab ─────────────────────────────────────────────────── */
 function CamerasTab({ content, onSave, saving }) {
   const [cameras, setCameras] = useState(
-    (content.cameras || DEFAULT_CAMERAS).map(c => ({
+    (content.cameras?.length ? content.cameras : DEFAULT_CAMERAS).map(c => ({
       ...c,
       specs:    (c.specs    || []).map(s => ({ ...s })),
       features: [...(c.features || [])],

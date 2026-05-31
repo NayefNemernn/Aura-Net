@@ -25,6 +25,35 @@ const offerItem = new mongoose.Schema({
   color: { type: String, default: '#00d4ff' },
 }, { _id: true });
 
+// Packages + cameras as shown/edited on the site (the editor and public
+// sections both use these keys; default [] so the UI falls back to its built-ins).
+const packageItem = new mongoose.Schema({
+  tier:       { type: String, default: '' },
+  name:       { type: String, default: '' },
+  speed:      { type: String, default: '' },
+  price:      { type: String, default: '' },
+  routerName: { type: String, default: '' },
+  popular:    { type: Boolean, default: false },
+  features:   [String],
+}, { _id: false });
+
+const cameraSpec = new mongoose.Schema({
+  label: { type: String, default: '' },
+  value: { type: String, default: '' },
+}, { _id: false });
+
+const cameraItem = new mongoose.Schema({
+  name:       { type: String, default: '' },
+  model:      { type: String, default: '' },
+  type:       { type: String, default: '' },
+  resolution: { type: String, default: '' },
+  cable:      { type: String, default: '' },
+  connector:  { type: String, default: '' },
+  image:      { type: String, default: '' },
+  specs:      { type: [cameraSpec], default: [] },
+  features:   [String],
+}, { _id: false });
+
 const s = new mongoose.Schema({
   _key: { type: String, default: 'main', unique: true },
 
@@ -66,6 +95,10 @@ const s = new mongoose.Schema({
   },
 
   media: { type: [mediaItem], default: [] },
+
+  // Site packages + cameras (edited in the Website editor)
+  packages: { type: [packageItem], default: [] },
+  cameras:  { type: [cameraItem],  default: [] },
 
   // Pop-up ad shown to visitors when they open the public site
   ad: {
