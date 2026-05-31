@@ -11,6 +11,7 @@ const NAV = [
   { to: '/messaging',      label: 'Messages',  icon: ChatIcon },
   { to: '/reports',        label: 'Reports',   icon: DocIcon },
   { to: '/landing-editor', label: 'Website',   icon: GlobeIcon },
+  { to: '/ads',            label: 'Pop-up Ad', icon: MegaphoneIcon },
   { to: '/settings',       label: 'Settings',  icon: GearIcon },
 ];
 
@@ -230,6 +231,11 @@ function RefreshIcon({ size = 16 }) {
 function LogoutIcon({ size = 16 }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <path d="M6 3H3v10h3M10 5l3 3-3 3M13 8H7"/>
+  </svg>;
+}
+function MegaphoneIcon({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 6.5v3a1 1 0 0 0 1 1h2l5 3V2.5l-5 3H3a1 1 0 0 0-1 1Z"/><path d="M12 6a2.5 2.5 0 0 1 0 4"/>
   </svg>;
 }
 function GlobeIcon({ size = 16 }) {

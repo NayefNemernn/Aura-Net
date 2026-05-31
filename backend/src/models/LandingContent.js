@@ -66,6 +66,17 @@ const s = new mongoose.Schema({
   },
 
   media: { type: [mediaItem], default: [] },
+
+  // Pop-up ad shown to visitors when they open the public site
+  ad: {
+    enabled:   { type: Boolean, default: false },
+    title:     { type: String, default: '' },
+    body:      { type: String, default: '' },
+    imageUrl:  { type: String, default: '' },
+    linkUrl:   { type: String, default: '' },
+    ctaLabel:  { type: String, default: '' },
+    updatedAt: { type: Date },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('LandingContent', s);

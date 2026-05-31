@@ -12,6 +12,7 @@ import ReportsPage   from './pages/ReportsPage';
 import SettingsPage  from './pages/SettingsPage';
 import MessagingPage      from './pages/MessagingPage';
 import LandingEditorPage  from './pages/LandingEditorPage';
+import AdEditorPage       from './pages/AdEditorPage';
 
 function Guard({ children }) {
   const { user, loading } = useAuth();
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="messaging"   element={<MessagingPage />} />
           <Route path="reports"         element={<ReportsPage />} />
           <Route path="landing-editor" element={<LandingEditorPage />} />
+          <Route path="ads"             element={<AdEditorPage />} />
           <Route path="settings"        element={<SettingsPage />} />
         </Route>
 

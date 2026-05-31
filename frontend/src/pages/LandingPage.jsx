@@ -11,6 +11,7 @@ import HardwareSection from '../components/landing/HardwareSection';
 import MediaSection    from '../components/landing/MediaSection';
 import ContactSection  from '../components/landing/ContactSection';
 import Footer          from '../components/landing/Footer';
+import AdPopup         from '../components/landing/AdPopup';
 
 export default function LandingPage() {
   const [content, setContent] = useState(null);
@@ -57,6 +58,8 @@ export default function LandingPage() {
       <ContactSection contact={content?.contact} />
 
       <Footer />
+
+      <AdPopup ad={content?.ad} />
     </div>
   );
 }

@@ -128,6 +128,49 @@ router.delete('/media/:id', auth, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// ── Admin — pop-up ad ──────────────────────────────────────────────
+// PUT /api/landing/ad — update ad text/flags
+router.put('/ad', auth, async (req, res) => {
+  const { enabled, title, body, linkUrl, ctaLabel } = req.body;
+  try {
+    const doc = await getDoc();
+    if (enabled  !== undefined) doc.ad.enabled  = !!enabled;
+    if (title    !== undefined) doc.ad.title    = title;
+    if (body     !== undefined) doc.ad.body     = body;
+    if (linkUrl  !== undefined) doc.ad.linkUrl  = linkUrl;
+    if (ctaLabel !== undefined) doc.ad.ctaLabel = ctaLabel;
+    doc.ad.updatedAt = new Date();
+    await doc.save();
+    res.json({ success: true, ad: doc.ad });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/landing/ad/image — upload the ad image
+router.post('/ad/image', auth, upload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid type' });
+  const imageUrl = `/uploads/landing/${req.file.filename}`;
+  try {
+    const doc = await getDoc();
+    if (doc.ad.imageUrl) fs.unlink(path.join(__dirname, '../../', doc.ad.imageUrl), () => {});
+    doc.ad.imageUrl  = imageUrl;
+    doc.ad.updatedAt = new Date();
+    await doc.save();
+    res.json({ success: true, ad: doc.ad, url: imageUrl });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// DELETE /api/landing/ad/image — remove the ad image
+router.delete('/ad/image', auth, async (req, res) => {
+  try {
+    const doc = await getDoc();
+    if (doc.ad.imageUrl) fs.unlink(path.join(__dirname, '../../', doc.ad.imageUrl), () => {});
+    doc.ad.imageUrl  = '';
+    doc.ad.updatedAt = new Date();
+    await doc.save();
+    res.json({ success: true, ad: doc.ad });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // PATCH /api/landing/media/reorder — body: { ids: ['id1','id2',...] }
 router.patch('/media/reorder', auth, async (req, res) => {
   const { ids } = req.body;
