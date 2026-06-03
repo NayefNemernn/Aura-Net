@@ -84,9 +84,11 @@ app.use((err, req, res, _next) => {
 
 // ── Boot ──────────────────────────────────────────────────────────────
 async function boot() {
-  await connectDB();
-
+  // Bind the port first so the platform health check passes even if Mongo is
+  // slow/unreachable at cold start. Mongo then connects in the background.
   app.listen(PORT, () => console.log(`🚀 Aura Net API → port ${PORT}`));
+
+  connectDB();
 
   // Initial sync 45s after boot (give DB time to settle)
   setTimeout(() => scraper.syncAll().catch(console.error), 45_000);
