@@ -13,8 +13,8 @@ export default function LoginPage() {
     e.preventDefault();
     setErr(''); setBusy(true);
     try {
-      await login(form.email, form.password);
-      nav('/');
+      const u = await login(form.email, form.password);
+      nav(u.role === 'admin' || u.role === 'superadmin' ? '/' : '/home');
     } catch (ex) {
       setErr(ex.response?.data?.error || 'Login failed');
     } finally { setBusy(false); }

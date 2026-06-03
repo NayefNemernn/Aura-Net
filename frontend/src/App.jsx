@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Layout       from './components/layout/Layout';
 import LoginPage    from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import AdminRegisterPage from './pages/AdminRegisterPage';
 import LandingPage  from './pages/LandingPage';
 import OverviewPage from './pages/OverviewPage';
 import ClientsPage  from './pages/ClientsPage';
@@ -14,6 +15,9 @@ import MessagingPage      from './pages/MessagingPage';
 import LandingEditorPage  from './pages/LandingEditorPage';
 import AdEditorPage       from './pages/AdEditorPage';
 
+const isAdmin = u => u && (u.role === 'admin' || u.role === 'superadmin');
+
+// Dashboard guard — admins only. Clients (viewers) are sent to the public site.
 function Guard({ children }) {
   const { user, loading } = useAuth();
   if (loading) return (
@@ -21,13 +25,16 @@ function Guard({ children }) {
       <div className="w-5 h-5 border border-ms-border border-t-ms-blue rounded-full animate-spin" />
     </div>
   );
-  return user ? children : <Navigate to="/home" replace />;
+  if (!user) return <Navigate to="/home" replace />;
+  return isAdmin(user) ? children : <Navigate to="/home" replace />;
 }
 
+// Login / register pages — already-authed users go to their home base.
 function Public({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user ? <Navigate to="/" replace /> : children;
+  if (user) return <Navigate to={isAdmin(user) ? '/' : '/home'} replace />;
+  return children;
 }
 
 export default function App() {
@@ -38,6 +45,7 @@ export default function App() {
         <Route path="/home"     element={<LandingPage />} />
         <Route path="/login"    element={<Public><LoginPage /></Public>} />
         <Route path="/register" element={<Public><RegisterPage /></Public>} />
+        <Route path="/register/admin" element={<Public><AdminRegisterPage /></Public>} />
 
         {/* Protected dashboard */}
         <Route path="/" element={<Guard><Layout /></Guard>}>

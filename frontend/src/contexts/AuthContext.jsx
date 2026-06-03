@@ -33,6 +33,14 @@ export function AuthProvider({ children }) {
     return data.user;
   }, []);
 
+  const registerAdmin = useCallback(async (payload) => {
+    const { data } = await api.post('/api/auth/register-admin', payload);
+    localStorage.setItem('accessToken',  data.accessToken);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    setUser(data.user);
+    return data.user;
+  }, []);
+
   const logout = useCallback(async () => {
     try { await api.post('/api/auth/logout'); } catch {}
     localStorage.clear();
@@ -42,7 +50,7 @@ export function AuthProvider({ children }) {
   const updateUser = useCallback(u => setUser(u), []);
 
   return (
-    <AuthCtx.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthCtx.Provider value={{ user, loading, login, register, registerAdmin, logout, updateUser }}>
       {children}
     </AuthCtx.Provider>
   );

@@ -1,13 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Phone, Mail, MapPin, Clock } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function ContactSection({ contact = {} }) {
+  const { user } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [err, setErr] = useState('');
+
+  // Pre-fill the form with the signed-in client's details
+  useEffect(() => {
+    if (!user) return;
+    setForm(p => ({
+      ...p,
+      name:  p.name  || user.name  || '',
+      email: p.email || user.email || '',
+      phone: p.phone || user.phone || '',
+    }));
+  }, [user]);
+
+  const firstName = user?.name?.trim().split(/\s+/)[0] || '';
 
   const setF = (k, v) => setForm(p => ({ ...p, [k]: v }));
 
@@ -52,10 +67,14 @@ export default function ContactSection({ contact = {} }) {
             <div className="h-px w-8 bg-primary opacity-70" />
           </div>
           <h2 className="font-serif font-normal text-foreground" style={{ fontSize: 'clamp(30px,4vw,52px)' }}>
-            Start Your <span className="text-primary italic">Deployment</span>
+            {firstName
+              ? <>Welcome back, <span className="text-primary italic">{firstName}</span></>
+              : <>Start Your <span className="text-primary italic">Deployment</span></>}
           </h2>
           <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
-            Get a free on-site consultation. Our certified technicians will assess your infrastructure needs.
+            {firstName
+              ? `Hi ${firstName}, your details are filled in below — just tell us how we can help and our team will reach out to you directly.`
+              : 'Get a free on-site consultation. Our certified technicians will assess your infrastructure needs.'}
           </p>
         </motion.div>
 

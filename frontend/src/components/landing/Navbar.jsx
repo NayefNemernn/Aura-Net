@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Wifi, Shield, Cable, Phone, Sun, Moon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../hooks/useTheme';
+import { useAuth } from '../../contexts/AuthContext';
 
 const navLinks = [
   { label: 'Internet',  href: '#packages',  icon: Wifi },
@@ -16,6 +17,11 @@ export default function Navbar() {
   const [mobileOpen,  setMobileOpen]  = useState(false);
   const navigate = useNavigate();
   const { theme, toggle, isLight } = useTheme();
+  const { user, logout } = useAuth();
+  const firstName = user?.name?.trim().split(/\s+/)[0] || '';
+  const admin = user && (user.role === 'admin' || user.role === 'superadmin');
+
+  const doLogout = async () => { setMobileOpen(false); await logout(); navigate('/home'); };
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
@@ -79,12 +85,34 @@ export default function Navbar() {
                 {isLight ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
               </button>
 
-              <button
-                onClick={() => navigate('/login')}
-                className="px-5 py-2 border border-primary/50 text-primary font-mono text-[10px] tracking-[0.2em] uppercase rounded-sm hover:bg-primary hover:text-background transition-all duration-300"
-              >
-                Client Login
-              </button>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
+                    Hi, <span className="text-primary">{firstName}</span>
+                  </span>
+                  {admin && (
+                    <button
+                      onClick={() => navigate('/')}
+                      className="px-4 py-2 border border-primary/50 text-primary font-mono text-[10px] tracking-[0.2em] uppercase rounded-sm hover:bg-primary hover:text-background transition-all duration-300"
+                    >
+                      Dashboard
+                    </button>
+                  )}
+                  <button
+                    onClick={doLogout}
+                    className="px-4 py-2 border border-border text-muted-foreground font-mono text-[10px] tracking-[0.2em] uppercase rounded-sm hover:border-primary/50 hover:text-primary transition-all duration-300"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate('/login')}
+                  className="px-5 py-2 border border-primary/50 text-primary font-mono text-[10px] tracking-[0.2em] uppercase rounded-sm hover:bg-primary hover:text-background transition-all duration-300"
+                >
+                  Client Login
+                </button>
+              )}
             </div>
 
             {/* Hamburger */}
@@ -117,12 +145,34 @@ export default function Navbar() {
                   </button>
                 );
               })}
-              <button
-                onClick={() => { setMobileOpen(false); navigate('/login'); }}
-                className="mt-4 px-8 py-3 bg-primary text-background font-mono font-semibold text-xs tracking-[0.2em] uppercase rounded-sm"
-              >
-                Client Login
-              </button>
+              {user ? (
+                <>
+                  <span className="mt-4 font-mono text-sm tracking-wider uppercase text-muted-foreground">
+                    Hi, <span className="text-primary">{firstName}</span>
+                  </span>
+                  {admin && (
+                    <button
+                      onClick={() => { setMobileOpen(false); navigate('/'); }}
+                      className="px-8 py-3 border border-primary/50 text-primary font-mono font-semibold text-xs tracking-[0.2em] uppercase rounded-sm"
+                    >
+                      Dashboard
+                    </button>
+                  )}
+                  <button
+                    onClick={doLogout}
+                    className="px-8 py-3 border border-border text-muted-foreground font-mono font-semibold text-xs tracking-[0.2em] uppercase rounded-sm"
+                  >
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => { setMobileOpen(false); navigate('/login'); }}
+                  className="mt-4 px-8 py-3 bg-primary text-background font-mono font-semibold text-xs tracking-[0.2em] uppercase rounded-sm"
+                >
+                  Client Login
+                </button>
+              )}
             </div>
           </motion.div>
         )}
