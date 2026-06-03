@@ -3,7 +3,7 @@ const router  = express.Router();
 const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
-const { auth } = require('../middleware/auth');
+const { auth, requireAdmin } = require('../middleware/auth');
 const LandingContent = require('../models/LandingContent');
 
 // ── File upload setup ──────────────────────────────────────────────
@@ -52,7 +52,7 @@ router.get('/', async (req, res) => {
 
 // ── Admin — text content ────────────────────────────────────────────
 // PUT /api/landing
-router.put('/', auth, async (req, res) => {
+router.put('/', auth, requireAdmin, async (req, res) => {
   const { hero, offers, plans, packages, cameras, contact, sectionTitles } = req.body;
   try {
     const update = {};
@@ -73,7 +73,7 @@ router.put('/', auth, async (req, res) => {
 
 // ── Admin — media ──────────────────────────────────────────────────
 // POST /api/landing/media/youtube
-router.post('/media/youtube', auth, async (req, res) => {
+router.post('/media/youtube', auth, requireAdmin, async (req, res) => {
   const { url, title, description } = req.body;
   if (!url) return res.status(400).json({ error: 'url required' });
   const videoId = extractYouTubeId(url);
@@ -87,7 +87,7 @@ router.post('/media/youtube', auth, async (req, res) => {
 });
 
 // POST /api/landing/media/photo
-router.post('/media/photo', auth, upload.single('photo'), async (req, res) => {
+router.post('/media/photo', auth, requireAdmin, upload.single('photo'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid type' });
   const { title, description } = req.body;
   const photoUrl = `/uploads/landing/${req.file.filename}`;
@@ -100,7 +100,7 @@ router.post('/media/photo', auth, upload.single('photo'), async (req, res) => {
 });
 
 // PATCH /api/landing/media/:id — update title/description
-router.patch('/media/:id', auth, async (req, res) => {
+router.patch('/media/:id', auth, requireAdmin, async (req, res) => {
   const { title, description } = req.body;
   try {
     const doc = await getDoc();
@@ -114,7 +114,7 @@ router.patch('/media/:id', auth, async (req, res) => {
 });
 
 // DELETE /api/landing/media/:id
-router.delete('/media/:id', auth, async (req, res) => {
+router.delete('/media/:id', auth, requireAdmin, async (req, res) => {
   try {
     const doc = await getDoc();
     const item = doc.media.id(req.params.id);
@@ -132,7 +132,7 @@ router.delete('/media/:id', auth, async (req, res) => {
 
 // ── Admin — pop-up ad ──────────────────────────────────────────────
 // PUT /api/landing/ad — update ad text/flags
-router.put('/ad', auth, async (req, res) => {
+router.put('/ad', auth, requireAdmin, async (req, res) => {
   const { enabled, title, body, linkUrl, ctaLabel } = req.body;
   try {
     const doc = await getDoc();
@@ -148,7 +148,7 @@ router.put('/ad', auth, async (req, res) => {
 });
 
 // POST /api/landing/ad/image — upload the ad image
-router.post('/ad/image', auth, upload.single('image'), async (req, res) => {
+router.post('/ad/image', auth, requireAdmin, upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid type' });
   const imageUrl = `/uploads/landing/${req.file.filename}`;
   try {
@@ -162,7 +162,7 @@ router.post('/ad/image', auth, upload.single('image'), async (req, res) => {
 });
 
 // DELETE /api/landing/ad/image — remove the ad image
-router.delete('/ad/image', auth, async (req, res) => {
+router.delete('/ad/image', auth, requireAdmin, async (req, res) => {
   try {
     const doc = await getDoc();
     if (doc.ad.imageUrl) fs.unlink(path.join(__dirname, '../../', doc.ad.imageUrl), () => {});
@@ -174,7 +174,7 @@ router.delete('/ad/image', auth, async (req, res) => {
 });
 
 // PATCH /api/landing/media/reorder — body: { ids: ['id1','id2',...] }
-router.patch('/media/reorder', auth, async (req, res) => {
+router.patch('/media/reorder', auth, requireAdmin, async (req, res) => {
   const { ids } = req.body;
   if (!Array.isArray(ids)) return res.status(400).json({ error: 'ids array required' });
   try {

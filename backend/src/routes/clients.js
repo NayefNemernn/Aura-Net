@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Client = require('../models/Client');
-const { auth } = require('../middleware/auth');
-router.use(auth);
+const { auth, requireAdmin } = require('../middleware/auth');
+router.use(auth, requireAdmin);
 
 // GET /api/clients
 router.get('/', async (req, res) => {

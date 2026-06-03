@@ -8,14 +8,42 @@ const sign = (id, secret, exp) => jwt.sign({ userId: id }, secret, { expiresIn: 
 // POST /api/auth/register
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, bmsUrl, bmsUser, bmsPass } = req.body;
+    const { name, email, phone, password } = req.body;
     if (!name || !email || !password)
       return res.status(400).json({ error: 'Name, email and password required' });
 
     if (await User.findOne({ email }))
       return res.status(409).json({ error: 'Email already registered' });
 
-    const user = new User({ name, email, password, bmsUrl, bmsUser, bmsPass });
+    const user = new User({ name, email, phone, password, role: 'viewer' });
+    await user.save();
+
+    const accessToken  = sign(user._id, process.env.JWT_SECRET         || 'dev_secret',  process.env.JWT_EXPIRES_IN         || '15m');
+    const refreshToken = sign(user._id, process.env.JWT_REFRESH_SECRET || 'dev_refresh', process.env.JWT_REFRESH_EXPIRES_IN || '7d');
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    res.status(201).json({ accessToken, refreshToken, user: user.toSafeObject() });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// POST /api/auth/register-admin  — gated by ADMIN_SIGNUP_CODE; creates an admin with BMS access
+router.post('/register-admin', async (req, res) => {
+  try {
+    const { name, email, phone, password, adminCode, bmsUrl, bmsUser, bmsPass } = req.body;
+    if (!name || !email || !password)
+      return res.status(400).json({ error: 'Name, email and password required' });
+
+    const expected = process.env.ADMIN_SIGNUP_CODE;
+    if (!expected)
+      return res.status(403).json({ error: 'Admin registration is disabled' });
+    if (adminCode !== expected)
+      return res.status(403).json({ error: 'Invalid admin code' });
+
+    if (await User.findOne({ email }))
+      return res.status(409).json({ error: 'Email already registered' });
+
+    const user = new User({ name, email, phone, password, role: 'admin', bmsUrl, bmsUser, bmsPass });
     await user.save();
 
     const accessToken  = sign(user._id, process.env.JWT_SECRET         || 'dev_secret',  process.env.JWT_EXPIRES_IN         || '15m');

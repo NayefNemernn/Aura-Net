@@ -1,11 +1,11 @@
 const router  = require('express').Router();
-const { auth }= require('../middleware/auth');
+const { auth, requireAdmin }= require('../middleware/auth');
 const Client  = require('../models/Client');
 const wa      = require('../services/whatsapp');
 const tg      = require('../services/telegram');
 const User    = require('../models/User');
 
-router.use(auth);
+router.use(auth, requireAdmin);
 
 // ── WhatsApp ──────────────────────────────────────────────────────────────
 

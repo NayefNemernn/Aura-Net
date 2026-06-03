@@ -1,7 +1,7 @@
 const express = require('express');
 const router  = express.Router();
 const Contact = require('../models/Contact');
-const { auth } = require('../middleware/auth');
+const { auth, requireAdmin } = require('../middleware/auth');
 
 // Public — anyone can submit
 router.post('/', async (req, res) => {
@@ -16,13 +16,13 @@ router.post('/', async (req, res) => {
 });
 
 // Admin — list messages (requires auth)
-router.get('/', auth, async (req, res) => {
+router.get('/', auth, requireAdmin, async (req, res) => {
   const docs = await Contact.find().sort({ createdAt: -1 }).limit(100);
   res.json({ contacts: docs });
 });
 
 // Admin — mark as read
-router.patch('/:id/read', auth, async (req, res) => {
+router.patch('/:id/read', auth, requireAdmin, async (req, res) => {
   await Contact.findByIdAndUpdate(req.params.id, { read: true });
   res.json({ success: true });
 });

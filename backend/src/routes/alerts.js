@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const Alert  = require('../models/Alert');
-const { auth } = require('../middleware/auth');
-router.use(auth);
+const { auth, requireAdmin } = require('../middleware/auth');
+router.use(auth, requireAdmin);
 
 // GET /api/alerts
 router.get('/', async (req, res) => {

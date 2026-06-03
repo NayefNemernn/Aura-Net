@@ -1,6 +1,6 @@
 const express = require('express');
 const router  = express.Router();
-const { auth } = require('../middleware/auth');
+const { auth, requireAdmin } = require('../middleware/auth');
 const {
   performSimpleAction,
   pingUser,
@@ -11,7 +11,7 @@ const {
 } = require('../services/bmsActions');
 
 // All routes require auth
-router.use(auth);
+router.use(auth, requireAdmin);
 
 // POST /api/bms/action  — { username, action }
 // Actions: refill | disconnect | block | resetMac | changeplan

@@ -19,4 +19,11 @@ const auth = async (req, res, next) => {
   }
 };
 
-module.exports = { auth };
+// Restrict a route to dashboard admins (admin / superadmin). Use after `auth`.
+const requireAdmin = (req, res, next) => {
+  if (!req.user || (req.user.role !== 'admin' && req.user.role !== 'superadmin'))
+    return res.status(403).json({ error: 'Admin access required' });
+  next();
+};
+
+module.exports = { auth, requireAdmin };

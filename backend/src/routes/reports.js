@@ -2,8 +2,8 @@ const router  = require('express').Router();
 const Client  = require('../models/Client');
 const Alert   = require('../models/Alert');
 const SyncLog = require('../models/SyncLog');
-const { auth } = require('../middleware/auth');
-router.use(auth);
+const { auth, requireAdmin } = require('../middleware/auth');
+router.use(auth, requireAdmin);
 
 // GET /api/reports/overview
 router.get('/overview', async (req, res) => {

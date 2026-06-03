@@ -1,11 +1,11 @@
 const router  = require('express').Router();
 const QRCode  = require('qrcode');
-const { auth }= require('../middleware/auth');
+const { auth, requireAdmin }= require('../middleware/auth');
 const User    = require('../models/User');
 const Client  = require('../models/Client');
 const wa      = require('../services/whatsapp');
 
-router.use(auth);
+router.use(auth, requireAdmin);
 
 // Resolve the value to encode in the QR / send as the pay link.
 function payTarget(whish = {}) {

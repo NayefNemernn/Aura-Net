@@ -1,8 +1,8 @@
 const router  = require('express').Router();
 const SyncLog = require('../models/SyncLog');
 const scraper = require('../services/scraper');
-const { auth } = require('../middleware/auth');
-router.use(auth);
+const { auth, requireAdmin } = require('../middleware/auth');
+router.use(auth, requireAdmin);
 
 // POST /api/sync  – trigger manual sync
 router.post('/', async (req, res) => {

@@ -1,10 +1,10 @@
 const router    = require('express').Router();
-const { auth }  = require('../middleware/auth');
+const { auth, requireAdmin }  = require('../middleware/auth');
 const wa        = require('../services/whatsapp');
 const reminders = require('../services/reminders');
 const Client    = require('../models/Client');
 
-router.use(auth);
+router.use(auth, requireAdmin);
 
 const DEFAULT_TEST_MESSAGE = 'Test Reminder Message From ABBAs Nemer - Developer';
 
