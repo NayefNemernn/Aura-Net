@@ -32,9 +32,10 @@ function WhatsAppTab() {
   const [search,      setSearch]      = useState('');
   const [selected,    setSelected]    = useState([]);
   const [message,     setMessage]     = useState('');
+  const [appendFooter, setAppendFooter] = useState(true);
   const [sending,     setSending]     = useState(false);
   const [result,      setResult]      = useState(null);
-  const [recTab,      setRecTab]      = useState('compose'); // 'compose' | 'reminders'
+  const [recTab,      setRecTab]      = useState('compose'); // 'compose' | 'reminders' | 'templates'
   const [testingId,   setTestingId]   = useState(null);
   const pollRef = useRef(null);
 
@@ -80,11 +81,20 @@ function WhatsAppTab() {
     setRecipients(prev => prev.map(r => r._id === c._id ? { ...r, remindersEnabled: data.remindersEnabled } : r));
   };
 
+  const allRemEnabled = recipients.length > 0 && recipients.every(c => c.remindersEnabled !== false);
+  const toggleAllReminders = async () => {
+    const enabled = !allRemEnabled;
+    const ids = recipients.map(c => c._id);
+    setRecipients(prev => prev.map(c => ({ ...c, remindersEnabled: enabled })));
+    try { await api.post('/api/clients/reminders/bulk', { ids, enabled }); }
+    catch { loadRecipients(); }
+  };
+
   const send = async () => {
     if (!message.trim() || selected.length === 0) return;
     setSending(true); setResult(null);
     try {
-      const { data } = await api.post('/api/messaging/whatsapp/send', { clientIds: selected, message });
+      const { data } = await api.post('/api/messaging/whatsapp/send', { clientIds: selected, message, appendFooter });
       setResult(data);
       if (data.success) setMessage('');
     } catch (e) { setResult({ success: false, error: e.response?.data?.error || e.message }); }
@@ -132,7 +142,7 @@ function WhatsAppTab() {
 
       {/* Sub-tabs */}
       <div className="flex gap-1 border-b border-ms-border">
-        {[['compose','Compose & Send'],['reminders','Auto-Reminders']].map(([k,l]) => (
+        {[['compose','Compose & Send'],['reminders','Auto-Reminders'],['templates','Templates']].map(([k,l]) => (
           <button key={k} onClick={() => setRecTab(k)}
             className={`px-3 py-1.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
               recTab === k ? 'border-ms-blue text-ms-blue' : 'border-transparent text-ms-sub hover:text-ms-text'}`}>{l}</button>
@@ -182,6 +192,11 @@ function WhatsAppTab() {
             <textarea className="ms-input resize-none text-sm" rows={8}
               placeholder="Type your message…"
               value={message} onChange={e => setMessage(e.target.value)} />
+            <label className="flex items-center gap-2 text-xs text-ms-sub cursor-pointer">
+              <input type="checkbox" checked={appendFooter} onChange={e => setAppendFooter(e.target.checked)}
+                className="w-3.5 h-3.5 accent-ms-blue" />
+              Append Aura Net footer <span className="text-ms-dim">(edit it in the Templates tab)</span>
+            </label>
             {result && (
               <div className={`text-sm ${result.success ? 'text-ms-green' : 'text-ms-red'}`}>
                 {result.success
@@ -210,6 +225,16 @@ function WhatsAppTab() {
               {sending ? <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" /> : null}
               Send Now
             </button>
+          </div>
+          {/* Search + bulk toggle */}
+          <div className="px-3 py-2 border-b border-ms-border flex items-center gap-3 flex-wrap">
+            <input className="ms-input py-1.5 text-xs flex-1 min-w-[160px]" placeholder="Search…"
+              value={search} onChange={e => setSearch(e.target.value)} />
+            <label className="flex items-center gap-1.5 cursor-pointer text-ms-blue font-semibold text-xs whitespace-nowrap">
+              <input type="checkbox" checked={allRemEnabled} onChange={toggleAllReminders}
+                className="w-3.5 h-3.5 accent-ms-blue" />
+              Reminders on for all
+            </label>
           </div>
           {result && (
             <div className={`px-4 py-2 text-sm border-b border-ms-border ${result.success ? 'text-ms-green' : 'text-ms-red'}`}>
@@ -242,6 +267,97 @@ function WhatsAppTab() {
           </div>
         </div>
       )}
+
+      {recTab === 'templates' && <TemplatesPanel />}
+    </div>
+  );
+}
+
+// ── Templates Panel ─────────────────────────────────────────────────────────
+
+function TemplatesPanel() {
+  const [m,       setM]       = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving,  setSaving]  = useState(false);
+  const [msg,     setMsg]     = useState('');
+
+  useEffect(() => {
+    api.get('/api/settings')
+      .then(r => setM(r.data.settings.messaging || { reminderExpired:'', reminderSoon:'', footer:'' }))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const set = (k, v) => setM(p => ({ ...p, [k]: v }));
+
+  const save = async () => {
+    setSaving(true); setMsg('');
+    try {
+      await api.patch('/api/settings', { messaging: m });
+      setMsg('✓ Saved');
+    } catch (e) { setMsg(e.response?.data?.error || e.message); }
+    finally { setSaving(false); setTimeout(() => setMsg(''), 3000); }
+  };
+
+  if (loading) return <div className="flex justify-center py-12"><span className="w-5 h-5 border-2 border-ms-border border-t-ms-blue rounded-full animate-spin" /></div>;
+
+  return (
+    <div className="space-y-4 max-w-2xl">
+      <div className="ms-card p-4">
+        <div className="font-semibold text-sm text-ms-text mb-1">Reminder Templates</div>
+        <div className="text-xs text-ms-dim mb-3">
+          Used by Auto-Reminders and the “Test” button. Placeholders:{' '}
+          <code className="text-ms-blue">{'{name}'}</code>,{' '}
+          <code className="text-ms-blue">{'{expiry}'}</code>,{' '}
+          <code className="text-ms-blue">{'{days}'}</code>. WhatsApp formatting: <code className="text-ms-blue">*bold*</code>.
+        </div>
+
+        <label className="block text-xs text-ms-dim font-semibold uppercase tracking-wider mb-1.5">Expired today</label>
+        <textarea className="ms-input resize-none text-sm mb-4" rows={4}
+          value={m.reminderExpired || ''} onChange={e => set('reminderExpired', e.target.value)} />
+
+        <label className="block text-xs text-ms-dim font-semibold uppercase tracking-wider mb-1.5">Expiring soon</label>
+        <textarea className="ms-input resize-none text-sm" rows={4}
+          value={m.reminderSoon || ''} onChange={e => set('reminderSoon', e.target.value)} />
+      </div>
+
+      <div className="ms-card p-4">
+        <div className="font-semibold text-sm text-ms-text mb-1">Footer</div>
+        <div className="text-xs text-ms-dim mb-3">Appended to every reminder, and to composed messages when “Append Aura Net footer” is ticked. Leave blank for no footer.</div>
+        <textarea className="ms-input resize-none text-sm" rows={3}
+          placeholder="— Aura Net"
+          value={m.footer || ''} onChange={e => set('footer', e.target.value)} />
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button onClick={save} disabled={saving} className="ms-btn text-sm px-4 py-2">
+          {saving ? 'Saving…' : 'Save Templates'}
+        </button>
+        {msg && <span className="text-sm text-ms-sub">{msg}</span>}
+      </div>
+
+      <PreviewCard m={m} />
+    </div>
+  );
+}
+
+// Live preview of how a reminder will read with the current templates + footer.
+function PreviewCard({ m }) {
+  const render = (tpl, days) => {
+    const body = String(tpl || '').replace(/\{(\w+)\}/g, (_, k) =>
+      ({ name: 'Ahmad', expiry: '2026-06-10', days: String(days) }[k] ?? ''));
+    return m.footer && m.footer.trim() ? `${body}\n\n${m.footer}` : body;
+  };
+  return (
+    <div className="ms-card p-4">
+      <div className="font-semibold text-sm text-ms-text mb-2">Preview</div>
+      <div className="grid sm:grid-cols-2 gap-3">
+        {[['Expired today', m.reminderExpired, 0], ['Expiring soon', m.reminderSoon, 2]].map(([label, tpl, days]) => (
+          <div key={label}>
+            <div className="text-[10px] text-ms-dim uppercase tracking-wider mb-1">{label}</div>
+            <div className="bg-ms-sidebar border border-ms-border rounded-lg p-3 text-xs text-ms-text whitespace-pre-line">{render(tpl, days)}</div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

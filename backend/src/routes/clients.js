@@ -90,6 +90,17 @@ router.patch('/:id/paid', async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/clients/reminders/bulk — set reminders on/off for many clients
+// Body: { ids: [...], enabled: bool }
+router.post('/reminders/bulk', async (req, res) => {
+  try {
+    const { ids, enabled } = req.body;
+    if (!Array.isArray(ids) || !ids.length) return res.status(400).json({ error: 'ids array required' });
+    await Client.updateMany({ _id: { $in: ids }, owner: req.user._id }, { remindersEnabled: !!enabled });
+    res.json({ success: true, enabled: !!enabled, count: ids.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 // PATCH /api/clients/:id/reminders
 router.patch('/:id/reminders', async (req, res) => {
   try {
