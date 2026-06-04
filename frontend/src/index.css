@@ -102,10 +102,18 @@ html.light {
 /* ─── Light mode specific tweaks ──────────────────────────────────── */
 html.light .ms-btn { color: #ffffff; }
 
-html.light [style*="background: #080808"],
-html.light [style*="background:#080808"] { background: rgb(var(--ms-navy)) !important; }
-html.light [style*="background: #0a0a0a"],
-html.light [style*="background:#0a0a0a"] { background: rgb(var(--ms-sidebar)) !important; }
+/* App chrome (top header, sidebar, mobile tab bar) stays dark in both themes.
+   Re-pin the ms-* vars it derives from so its text/icons/borders keep their
+   bright dark-mode values even under html.light — otherwise text-ms-text/sub/dim
+   flip to near-black and become invisible on the dark bars. */
+.app-chrome {
+  --ms-text:    240 236 228;   /* bright on dark */
+  --ms-primary: 200 168 106;   /* bright gold accent (active link) */
+  --ms-sidebar:  28  28  28;   /* subtle hover raise */
+  --ms-border:   48  48  48;   /* faint dividers */
+  --ms-surface:  17  17  17;
+}
+
 html.light [style*="background: #0c0c0c"],
 html.light [style*="background:#0c0c0c"] { background: rgb(var(--bg)) !important; }
 html.light [style*="background: #0e0e0e"],
@@ -113,7 +121,6 @@ html.light [style*="background:#0e0e0e"] { background: rgb(var(--ms-sidebar)) !i
 html.light [style*="background: #111"],
 html.light [style*="background:#111"] { background: rgb(var(--card)) !important; }
 html.light [style*="background: #111111"] { background: rgb(var(--card)) !important; }
-html.light [style*="background: #0a0a0a"] { background: rgb(var(--ms-sidebar)) !important; }
 
 /* Hero section panel light override */
 html.light .hero-router-panel { background: #f0ece4 !important; }

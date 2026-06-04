@@ -64,7 +64,7 @@ export default function Layout() {
     <div className="flex flex-col h-screen bg-ms-bg overflow-hidden">
 
       {/* ── Top header ─────────────────────────────────────────── */}
-      <header className="h-14 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-20 border-b border-ms-border"
+      <header className="app-chrome h-14 flex items-center px-4 lg:px-6 gap-4 flex-shrink-0 z-20 border-b border-ms-border"
         style={{ background: '#080808' }}>
         {/* Logo */}
         <div className="flex items-center gap-2 mr-2 flex-shrink-0">
@@ -127,7 +127,7 @@ export default function Layout() {
       {/* ── Body ────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <aside className="hidden lg:flex w-48 flex-shrink-0 flex-col border-r border-ms-border"
+        <aside className="app-chrome hidden lg:flex w-48 flex-shrink-0 flex-col border-r border-ms-border"
           style={{ background: '#0a0a0a' }}>
           <nav className="flex-1 py-3 px-2 space-y-0.5">
             {NAV.map(({ to, label, icon: Icon, end }) => (
@@ -158,7 +158,7 @@ export default function Layout() {
       </div>
 
       {/* ── Mobile Tab Bar ──────────────────────────────────────── */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 border-t border-ms-border z-30 flex safe-area-bottom"
+      <nav className="app-chrome md:hidden fixed bottom-0 inset-x-0 border-t border-ms-border z-30 flex safe-area-bottom"
         style={{ background: '#080808' }}>
         {NAV.map(({ to, label, icon: Icon, end }) => (
           <NavLink key={to} to={to} end={end}
