@@ -36,7 +36,8 @@ const hardware = [
   },
 ];
 
-export default function HardwareSection() {
+export default function HardwareSection({ content }) {
+  const title = content?.sectionTitles?.hardware || 'The Hard Iron';
   return (
     <section id="hardware" className="relative py-24 lg:py-32 blueprint-grid">
       <div className="w-full px-6 lg:px-16 xl:px-24">
@@ -55,7 +56,8 @@ export default function HardwareSection() {
             <div className="h-px w-8 bg-primary opacity-70" />
           </div>
           <h2 className="font-serif font-normal text-foreground" style={{ fontSize: 'clamp(30px,4vw,52px)' }}>
-            The Hard <span className="text-primary italic">Iron</span>
+            {title.split(' ').slice(0,-1).join(' ')}{' '}
+            <span className="text-primary italic">{title.split(' ').slice(-1)}</span>
           </h2>
           <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
             Every component we deploy is enterprise-certified. From gold-plated RJ45 pins to shielded Cat6a cabling.

@@ -119,13 +119,13 @@ export default function LandingEditorPage() {
 /* ─── Hero Tab ───────────────────────────────────────────────────── */
 function HeroTab({ content, onSave, saving }) {
   const [hero, setHero] = useState({
-    badge:    content.hero?.badge    || 'EST. 2017 · INTERNET & SECURITY',
+    badge:    content.hero?.badge    || 'Internet & Surveillance',
     title1:   content.hero?.title1   || 'Internet &',
     title2:   content.hero?.title2   || 'cameras,',
     title3:   content.hero?.title3   || 'installed\nproperly.',
     subtitle: content.hero?.subtitle || '',
     cta1:     content.hero?.cta1     || 'View Packages',
-    cta2:     content.hero?.cta2     || 'Book a Free Survey',
+    cta2:     content.hero?.cta2     || 'Security Systems',
   });
   const set = (k, v) => setHero(p => ({ ...p, [k]: v }));
 
@@ -133,7 +133,7 @@ function HeroTab({ content, onSave, saving }) {
     <div className="space-y-4">
       <Panel title="Hero Text" desc="The large headline shown in the first section of the site.">
         <Field label="Eyebrow / Badge Text">
-          <Input value={hero.badge} onChange={e => set('badge', e.target.value)} placeholder="EST. 2017 · INTERNET & SECURITY" />
+          <Input value={hero.badge} onChange={e => set('badge', e.target.value)} placeholder="Internet & Surveillance" />
         </Field>
         <Grid3>
           <Field label="Headline Line 1">
@@ -155,7 +155,7 @@ function HeroTab({ content, onSave, saving }) {
             <Input value={hero.cta1} onChange={e => set('cta1', e.target.value)} placeholder="View Packages" />
           </Field>
           <Field label="Secondary CTA Label">
-            <Input value={hero.cta2} onChange={e => set('cta2', e.target.value)} placeholder="Book a Free Survey" />
+            <Input value={hero.cta2} onChange={e => set('cta2', e.target.value)} placeholder="Security Systems" />
           </Field>
         </Grid2>
       </Panel>

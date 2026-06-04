@@ -58,13 +58,13 @@ const s = new mongoose.Schema({
   _key: { type: String, default: 'main', unique: true },
 
   hero: {
-    badge:    { type: String, default: 'Fiber-Optic Network Provider' },
-    title1:   { type: String, default: 'Blazing Fast' },
-    title2:   { type: String, default: 'Fiber Internet' },
-    title3:   { type: String, default: 'For Everyone' },
-    subtitle: { type: String, default: 'Experience the power of pure fiber optics — ultra-low latency, symmetric speeds, and 99.9% uptime backed by 24/7 local support.' },
-    cta1:     { type: String, default: 'View All Plans' },
-    cta2:     { type: String, default: 'Client Login' },
+    badge:    { type: String, default: 'Internet & Surveillance' },
+    title1:   { type: String, default: 'Internet &' },
+    title2:   { type: String, default: 'cameras,' },
+    title3:   { type: String, default: 'installed\nproperly.' },
+    subtitle: { type: String, default: 'We build quiet, reliable networks — fiber routers, HD cameras, Wi‑Fi coverage and UPS backup — for people who notice the details.' },
+    cta1:     { type: String, default: 'View Packages' },
+    cta2:     { type: String, default: 'Security Systems' },
   },
 
   offers: { type: [offerItem], default: [
@@ -88,10 +88,11 @@ const s = new mongoose.Schema({
   },
 
   sectionTitles: {
-    plans:   { type: String, default: 'Choose Your Speed' },
-    router:  { type: String, default: 'Enterprise-Grade Routing Core' },
-    cables:  { type: String, default: 'Direct Ethernet Infrastructure' },
-    media:   { type: String, default: 'Our Network in Action' },
+    packages: { type: String, default: 'Choose Your Bandwidth' },
+    cameras:  { type: String, default: 'The Sentinel View' },
+    hardware: { type: String, default: 'The Hard Iron' },
+    contact:  { type: String, default: 'Start Your Deployment' },
+    media:    { type: String, default: 'Our Network in Action' },
   },
 
   media: { type: [mediaItem], default: [] },

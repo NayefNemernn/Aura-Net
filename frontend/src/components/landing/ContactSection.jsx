@@ -4,7 +4,8 @@ import { Send, Phone, Mail, MapPin, Clock } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
-export default function ContactSection({ contact = {} }) {
+export default function ContactSection({ contact = {}, title }) {
+  const heading = title || 'Start Your Deployment';
   const { user } = useAuth();
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
   const [sending, setSending] = useState(false);
@@ -69,7 +70,8 @@ export default function ContactSection({ contact = {} }) {
           <h2 className="font-serif font-normal text-foreground" style={{ fontSize: 'clamp(30px,4vw,52px)' }}>
             {firstName
               ? <>Welcome back, <span className="text-primary italic">{firstName}</span></>
-              : <>Start Your <span className="text-primary italic">Deployment</span></>}
+              : <>{heading.split(' ').slice(0,-1).join(' ')}{' '}
+                  <span className="text-primary italic">{heading.split(' ').slice(-1)}</span></>}
           </h2>
           <p className="mt-4 text-muted-foreground max-w-lg mx-auto text-sm leading-relaxed">
             {firstName

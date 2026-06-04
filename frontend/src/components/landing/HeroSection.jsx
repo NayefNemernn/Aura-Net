@@ -2,8 +2,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown, Zap, Shield, Wifi } from 'lucide-react';
 
-export default function HeroSection() {
+export default function HeroSection({ content }) {
   const scrollTo = (id) => document.querySelector(id)?.scrollIntoView({ behavior: 'smooth' });
+
+  const h = content?.hero || {};
+  const hero = {
+    badge:    h.badge    || 'Internet & Surveillance',
+    title1:   h.title1   || 'Internet &',
+    title2:   h.title2   || 'cameras,',
+    title3:   h.title3   || 'installed\nproperly.',
+    subtitle: h.subtitle || 'We build quiet, reliable networks — fiber routers, HD cameras, Wi‑Fi coverage and UPS backup — for people who notice the details.',
+    cta1:     h.cta1     || 'View Packages',
+    cta2:     h.cta2     || 'Security Systems',
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden blueprint-grid">
@@ -27,22 +38,22 @@ export default function HeroSection() {
               <div className="flex items-center gap-3 mb-6">
                 <div className="h-px w-10 bg-primary opacity-70" />
                 <span className="font-mono text-[10px] tracking-[0.3em] text-primary uppercase">
-                  Internet & Surveillance
+                  {hero.badge}
                 </span>
               </div>
 
               {/* Headline */}
               <h1 className="font-serif font-normal leading-[1.02] tracking-tight text-foreground"
                 style={{ fontSize: 'clamp(52px,7.5vw,100px)' }}>
-                Internet &<br />
-                <span className="text-primary italic">cameras,</span><br />
-                installed<br />
-                properly.
+                {hero.title1}<br />
+                <span className="text-primary italic">{hero.title2}</span><br />
+                {hero.title3.split('\n').map((line, i) => (
+                  <React.Fragment key={i}>{i > 0 && <br />}{line}</React.Fragment>
+                ))}
               </h1>
 
-              <p className="mt-8 text-base text-muted-foreground leading-relaxed max-w-md">
-                We build quiet, reliable networks — fiber routers, HD cameras,
-                Wi‑Fi coverage and UPS backup — for people who notice the details.
+              <p className="mt-8 text-base text-muted-foreground leading-relaxed max-w-md whitespace-pre-line">
+                {hero.subtitle}
               </p>
 
               {/* CTAs */}
@@ -51,14 +62,14 @@ export default function HeroSection() {
                   onClick={() => scrollTo('#packages')}
                   className="group px-8 py-4 bg-primary text-background font-mono font-semibold text-[11px] tracking-[0.2em] uppercase rounded-sm hover:bg-primary/90 transition-all duration-300 flex items-center gap-3"
                 >
-                  View Packages
+                  {hero.cta1}
                   <ArrowDown className="w-4 h-4 group-hover:translate-y-1 transition-transform" />
                 </button>
                 <button
                   onClick={() => scrollTo('#cameras')}
                   className="px-8 py-4 border border-border text-muted-foreground font-mono font-semibold text-[11px] tracking-[0.2em] uppercase rounded-sm hover:border-primary/50 hover:text-primary transition-all duration-300"
                 >
-                  Security Systems
+                  {hero.cta2}
                 </button>
               </div>
 

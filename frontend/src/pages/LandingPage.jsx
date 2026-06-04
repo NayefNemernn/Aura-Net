@@ -25,7 +25,7 @@ export default function LandingPage() {
       <Navbar />
       <CableConnector />
 
-      <HeroSection />
+      <HeroSection content={content} />
 
       <SectionDivider
         image="/products/cam-bullet.png"
@@ -49,13 +49,13 @@ export default function LandingPage() {
         label="PTZ · 4K · Online"
       />
 
-      <HardwareSection />
+      <HardwareSection content={content} />
 
       {content?.media?.length > 0 && (
         <MediaSection content={content} />
       )}
 
-      <ContactSection contact={content?.contact} />
+      <ContactSection contact={content?.contact} title={content?.sectionTitles?.contact} />
 
       <Footer />
 
