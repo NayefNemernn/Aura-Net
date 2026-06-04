@@ -45,9 +45,9 @@ const UserSchema = new mongoose.Schema({
   // placeholders. The footer is appended to reminder messages (and optionally
   // to composed broadcasts).
   messaging: {
-    reminderExpired: { type: String, default: '🔴 Dear {name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.' },
-    reminderSoon:    { type: String, default: '⚠️ Dear {name},\n\nYour internet subscription expires in *{days} days* ({expiry}). Please renew soon to stay connected.' },
-    footer:          { type: String, default: '— Aura Net' },
+    reminderExpired: { type: String, default: '🔴 عزيزي {name}،\n\nلقد انتهى اشتراك الإنترنت الخاص بك *اليوم*. يرجى التواصل معنا للتجديد لتجنّب انقطاع الخدمة.\n\n———\n\n🔴 Dear {name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.' },
+    reminderSoon:    { type: String, default: '⚠️ عزيزي {name}،\n\nسينتهي اشتراك الإنترنت الخاص بك خلال *{days} يوم* بتاريخ ({expiry}). يرجى التجديد قريباً للبقاء متصلاً.\n\n———\n\n⚠️ Dear {name},\n\nYour internet subscription expires in *{days} days* ({expiry}). Please renew soon to stay connected.' },
+    footer:          { type: String, default: '— أورا نت | Aura Net' },
   },
 
   telegramToken:  { type: String, default: '' },

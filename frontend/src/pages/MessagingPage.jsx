@@ -324,7 +324,7 @@ function TemplatesPanel() {
         <div className="font-semibold text-sm text-ms-text mb-1">Footer</div>
         <div className="text-xs text-ms-dim mb-3">Appended to every reminder, and to composed messages when “Append Aura Net footer” is ticked. Leave blank for no footer.</div>
         <textarea className="ms-input resize-none text-sm" rows={3}
-          placeholder="— Aura Net"
+          placeholder="— أورا نت | Aura Net"
           value={m.footer || ''} onChange={e => set('footer', e.target.value)} />
       </div>
 

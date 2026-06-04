@@ -4,9 +4,9 @@ const wa     = require('./whatsapp');
 
 // Fallbacks for users created before the messaging templates existed.
 const DEFAULTS = {
-  reminderExpired: '🔴 Dear {name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.',
-  reminderSoon:    '⚠️ Dear {name},\n\nYour internet subscription expires in *{days} days* ({expiry}). Please renew soon to stay connected.',
-  footer:          '— Aura Net',
+  reminderExpired: '🔴 عزيزي {name}،\n\nلقد انتهى اشتراك الإنترنت الخاص بك *اليوم*. يرجى التواصل معنا للتجديد لتجنّب انقطاع الخدمة.\n\n———\n\n🔴 Dear {name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.',
+  reminderSoon:    '⚠️ عزيزي {name}،\n\nسينتهي اشتراك الإنترنت الخاص بك خلال *{days} يوم* بتاريخ ({expiry}). يرجى التجديد قريباً للبقاء متصلاً.\n\n———\n\n⚠️ Dear {name},\n\nYour internet subscription expires in *{days} days* ({expiry}). Please renew soon to stay connected.',
+  footer:          '— أورا نت | Aura Net',
 };
 
 const applyTemplate = (tpl, vars) =>
