@@ -108,6 +108,10 @@ const s = new mongoose.Schema({
     body:      { type: String, default: '' },
     imageUrl:  { type: String, default: '' },
     linkUrl:   { type: String, default: '' },
+    // In-page section to scroll to when the button is clicked
+    // (one of: packages, cameras, hardware, media, contact). Takes
+    // precedence over linkUrl when set.
+    linkSection: { type: String, default: '' },
     ctaLabel:  { type: String, default: '' },
     updatedAt: { type: Date },
   },

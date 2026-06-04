@@ -3,31 +3,55 @@ import api from '../services/api';
 
 const BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+// Landing-page sections the ad button can jump to (must match the
+// section `id`s in the public components).
+const SECTIONS = [
+  { id: 'packages', label: 'Internet Packages' },
+  { id: 'cameras',  label: 'Cameras' },
+  { id: 'hardware', label: 'Hardware' },
+  { id: 'media',    label: 'Media Gallery' },
+  { id: 'contact',  label: 'Contact' },
+];
+
 export default function AdEditorPage() {
   const [ad,        setAd]        = useState(null);
   const [loading,   setLoading]   = useState(true);
   const [saving,    setSaving]    = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [urlMode,   setUrlMode]   = useState(false);
   const [msg,       setMsg]       = useState('');
   const fileRef = useRef(null);
 
   useEffect(() => {
     api.get('/api/landing')
-      .then(({ data }) => setAd(data.content.ad || {}))
+      .then(({ data }) => {
+        const a = data.content.ad || {};
+        setAd(a);
+        setUrlMode(!!a.linkUrl && !a.linkSection);
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const set = (k, v) => setAd(p => ({ ...p, [k]: v }));
 
+  // Unified "button action" selector: no button / a section / a custom URL.
+  const linkValue = ad?.linkSection ? `section:${ad.linkSection}` : ((urlMode || ad?.linkUrl) ? 'url' : '');
+  const onLinkChange = (v) => {
+    if (v === '')          { setUrlMode(false); setAd(p => ({ ...p, linkSection: '', linkUrl: '' })); }
+    else if (v === 'url')  { setUrlMode(true);  setAd(p => ({ ...p, linkSection: '' })); }
+    else                   { setUrlMode(false); setAd(p => ({ ...p, linkSection: v.split(':')[1], linkUrl: '' })); }
+  };
+
   const save = async () => {
     setSaving(true); setMsg('');
     try {
       const { data } = await api.put('/api/landing/ad', {
-        enabled:  ad.enabled,
-        title:    ad.title,
-        body:     ad.body,
-        linkUrl:  ad.linkUrl,
-        ctaLabel: ad.ctaLabel,
+        enabled:     ad.enabled,
+        title:       ad.title,
+        body:        ad.body,
+        linkUrl:     ad.linkSection ? '' : (ad.linkUrl || ''),
+        linkSection: ad.linkSection || '',
+        ctaLabel:    ad.ctaLabel,
       });
       setAd(data.ad);
       setMsg('Saved — live on the website');
@@ -119,14 +143,32 @@ export default function AdEditorPage() {
             <textarea className="ms-input resize-none" rows={3} value={ad.body || ''} onChange={e => set('body', e.target.value)}
               placeholder="Get 3 months free on any fiber plan…" />
           </Field>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Button link (optional)">
+          <Field label="Button action">
+            <select className="ms-input" value={linkValue} onChange={e => onLinkChange(e.target.value)}>
+              <option value="">No button</option>
+              <optgroup label="Scroll to section">
+                {SECTIONS.map(s => <option key={s.id} value={`section:${s.id}`}>{s.label}</option>)}
+              </optgroup>
+              <option value="url">Custom URL…</option>
+            </select>
+            <p className="text-[11px] text-ms-dim mt-1">
+              {ad.linkSection
+                ? 'The button scrolls visitors straight to that section of the website.'
+                : urlMode
+                  ? 'The button opens this link in a new tab.'
+                  : 'Pick where the button takes visitors, or leave as “No button”.'}
+            </p>
+          </Field>
+          {linkValue === 'url' && (
+            <Field label="Button link (URL)">
               <input className="ms-input" value={ad.linkUrl || ''} onChange={e => set('linkUrl', e.target.value)} placeholder="https://…" />
             </Field>
+          )}
+          {linkValue && (
             <Field label="Button label">
               <input className="ms-input" value={ad.ctaLabel || ''} onChange={e => set('ctaLabel', e.target.value)} placeholder="Learn More" />
             </Field>
-          </div>
+          )}
         </div>
 
         {/* Live preview */}
@@ -137,11 +179,11 @@ export default function AdEditorPage() {
               <div className="relative w-full max-w-xs bg-ms-surface border border-ms-border rounded-lg overflow-hidden shadow-ms-lg">
                 <span className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center text-xs">✕</span>
                 {img && <img src={img} alt="" className="w-full object-cover max-h-40" />}
-                {(ad.title || ad.body || ad.linkUrl) && (
+                {(ad.title || ad.body || ad.linkSection || ad.linkUrl) && (
                   <div className="p-4 text-center">
                     {ad.title && <div className="text-lg font-semibold text-ms-text mb-1">{ad.title}</div>}
                     {ad.body && <div className="text-xs text-ms-sub whitespace-pre-line">{ad.body}</div>}
-                    {ad.linkUrl && (
+                    {(ad.linkSection || ad.linkUrl) && (
                       <span className="inline-block mt-3 px-4 py-2 bg-ms-blue text-white text-[10px] tracking-[0.2em] uppercase rounded-sm">
                         {ad.ctaLabel || 'Learn More'}
                       </span>

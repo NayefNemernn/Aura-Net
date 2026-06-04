@@ -20,6 +20,14 @@ export default function AdPopup({ ad }) {
   if (!open || !ad) return null;
 
   const close = () => { sessionStorage.setItem(seenKey, '1'); setOpen(false); };
+
+  // Close the pop-up and smooth-scroll to an in-page section (e.g. #cameras).
+  const goToSection = (e) => {
+    e.preventDefault();
+    close();
+    setTimeout(() => document.getElementById(ad.linkSection)?.scrollIntoView({ behavior: 'smooth' }), 60);
+  };
+
   const img = ad.imageUrl
     ? (ad.imageUrl.startsWith('http') ? ad.imageUrl : `${BACKEND}${ad.imageUrl}`)
     : null;
@@ -27,6 +35,8 @@ export default function AdPopup({ ad }) {
   const Img = img && (
     <img src={img} alt={ad.title || 'Advertisement'} className="w-full object-cover max-h-[60vh]" />
   );
+
+  const hasLink = !!(ad.linkSection || ad.linkUrl);
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
@@ -38,19 +48,28 @@ export default function AdPopup({ ad }) {
           ✕
         </button>
 
-        {Img && (ad.linkUrl
-          ? <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer">{Img}</a>
-          : Img)}
+        {Img && (
+          ad.linkSection
+            ? <a href={`#${ad.linkSection}`} onClick={goToSection}>{Img}</a>
+            : ad.linkUrl
+              ? <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer">{Img}</a>
+              : Img
+        )}
 
-        {(ad.title || ad.body || ad.linkUrl) && (
+        {(ad.title || ad.body || hasLink) && (
           <div className="p-5 text-center">
             {ad.title && <h3 className="font-serif text-2xl text-foreground mb-2">{ad.title}</h3>}
             {ad.body && <p className="text-sm text-muted-foreground whitespace-pre-line">{ad.body}</p>}
-            {ad.linkUrl && (
-              <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-block mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs tracking-[0.2em] uppercase rounded-sm hover:opacity-90 transition-opacity">
-                {ad.ctaLabel || 'Learn More'}
-              </a>
+            {hasLink && (
+              ad.linkSection
+                ? <a href={`#${ad.linkSection}`} onClick={goToSection}
+                    className="inline-block mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs tracking-[0.2em] uppercase rounded-sm hover:opacity-90 transition-opacity cursor-pointer">
+                    {ad.ctaLabel || 'Learn More'}
+                  </a>
+                : <a href={ad.linkUrl} target="_blank" rel="noopener noreferrer"
+                    className="inline-block mt-4 px-6 py-2.5 bg-primary text-primary-foreground font-mono text-xs tracking-[0.2em] uppercase rounded-sm hover:opacity-90 transition-opacity">
+                    {ad.ctaLabel || 'Learn More'}
+                  </a>
             )}
           </div>
         )}

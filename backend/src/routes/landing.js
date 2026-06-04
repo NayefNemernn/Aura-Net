@@ -133,14 +133,15 @@ router.delete('/media/:id', auth, requireAdmin, async (req, res) => {
 // ── Admin — pop-up ad ──────────────────────────────────────────────
 // PUT /api/landing/ad — update ad text/flags
 router.put('/ad', auth, requireAdmin, async (req, res) => {
-  const { enabled, title, body, linkUrl, ctaLabel } = req.body;
+  const { enabled, title, body, linkUrl, linkSection, ctaLabel } = req.body;
   try {
     const doc = await getDoc();
-    if (enabled  !== undefined) doc.ad.enabled  = !!enabled;
-    if (title    !== undefined) doc.ad.title    = title;
-    if (body     !== undefined) doc.ad.body     = body;
-    if (linkUrl  !== undefined) doc.ad.linkUrl  = linkUrl;
-    if (ctaLabel !== undefined) doc.ad.ctaLabel = ctaLabel;
+    if (enabled     !== undefined) doc.ad.enabled     = !!enabled;
+    if (title       !== undefined) doc.ad.title       = title;
+    if (body        !== undefined) doc.ad.body        = body;
+    if (linkUrl     !== undefined) doc.ad.linkUrl     = linkUrl;
+    if (linkSection !== undefined) doc.ad.linkSection = linkSection;
+    if (ctaLabel    !== undefined) doc.ad.ctaLabel    = ctaLabel;
     doc.ad.updatedAt = new Date();
     await doc.save();
     res.json({ success: true, ad: doc.ad });
