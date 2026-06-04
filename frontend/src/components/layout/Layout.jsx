@@ -8,6 +8,7 @@ const NAV = [
   { to: '/',               label: 'Overview',  icon: GridIcon,    end: true },
   { to: '/clients',        label: 'Clients',   icon: UsersIcon },
   { to: '/alerts',         label: 'Alerts',    icon: BellIcon },
+  { to: '/inbox',          label: 'Inbox',     icon: InboxIcon },
   { to: '/messaging',      label: 'Messages',  icon: ChatIcon },
   { to: '/reports',        label: 'Reports',   icon: DocIcon },
   { to: '/landing-editor', label: 'Website',   icon: GlobeIcon },
@@ -21,6 +22,25 @@ export default function Layout() {
   const { isLight, toggle } = useTheme();
   const [syncing, setSyncing] = useState(false);
   const [toast,   setToast]   = useState(null);
+  const [inboxUnread, setInboxUnread] = useState(0);
+
+  // Poll the website-inbox unread count for the sidebar badge.
+  useEffect(() => {
+    let active = true;
+    const fetchUnread = async () => {
+      try { const { data } = await api.get('/api/contact/unread-count'); if (active) setInboxUnread(data.unread || 0); }
+      catch (_) {}
+    };
+    fetchUnread();
+    const id = setInterval(fetchUnread, 60_000);
+    window.addEventListener('focus', fetchUnread);
+    window.addEventListener('contact-unread-refresh', fetchUnread);
+    return () => {
+      active = false; clearInterval(id);
+      window.removeEventListener('focus', fetchUnread);
+      window.removeEventListener('contact-unread-refresh', fetchUnread);
+    };
+  }, []);
 
   const showToast = (msg, type = 'ok') => {
     setToast({ msg, type });
@@ -140,6 +160,9 @@ export default function Layout() {
                   }`
                 }>
                 <Icon size={14} />{label}
+                {label === 'Inbox' && inboxUnread > 0 && (
+                  <span className="ml-auto bg-ms-blue text-black text-[8px] font-bold leading-none px-1.5 py-0.5 rounded-full">{inboxUnread}</span>
+                )}
               </NavLink>
             ))}
           </nav>
@@ -167,7 +190,12 @@ export default function Layout() {
                 isActive ? 'text-ms-blue' : 'text-ms-dim'
               }`
             }>
-            <Icon size={18} />
+            <span className="relative">
+              <Icon size={18} />
+              {label === 'Inbox' && inboxUnread > 0 && (
+                <span className="absolute -top-1 -right-1.5 min-w-[14px] h-[14px] flex items-center justify-center bg-ms-blue text-black text-[8px] font-bold rounded-full px-1">{inboxUnread}</span>
+              )}
+            </span>
             <span className="font-mono text-[8px] tracking-wider uppercase">{label}</span>
           </NavLink>
         ))}
@@ -216,6 +244,12 @@ function GearIcon({ size = 16 }) {
   return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
     <circle cx="8" cy="8" r="2.5"/>
     <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.1 3.1l1.4 1.4M11.5 11.5l1.4 1.4M3.1 12.9l1.4-1.4M11.5 4.5l1.4-1.4"/>
+  </svg>;
+}
+function InboxIcon({ size = 16 }) {
+  return <svg width={size} height={size} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1.5 9.5 3 3.5a1 1 0 0 1 1-.75h8a1 1 0 0 1 1 .75l1.5 6V12a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1V9.5Z"/>
+    <path d="M1.5 9.5H5l1 1.5h4l1-1.5h3.5"/>
   </svg>;
 }
 function ChatIcon({ size = 16 }) {

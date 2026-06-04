@@ -1,4 +1,14 @@
+const User = require('../models/User');
+
 const BASE = 'https://api.telegram.org/bot';
+
+// Escape the characters special to Telegram's HTML parse mode.
+function escapeHtml(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
 async function sendMessage(token, chatId, text) {
   if (!token || !chatId || !text) return null;
@@ -48,4 +58,23 @@ async function sendAlert(user, sev, title, detail) {
   await sendMessage(user.telegramToken, user.telegramChatId, text);
 }
 
-module.exports = { sendMessage, getMe, detectChatId, sendAlert };
+// Broadcast an HTML message to every active admin who has Telegram set up.
+// Used for account-level notifications (e.g. a new website contact message)
+// that aren't tied to a single user's per-alert rules. Never throws.
+async function notifyAdmins(text) {
+  try {
+    const admins = await User.find({
+      role:           { $in: ['admin', 'superadmin'] },
+      isActive:       true,
+      telegramToken:  { $ne: '' },
+      telegramChatId: { $ne: '' },
+    }).select('telegramToken telegramChatId');
+    await Promise.all(admins.map(u => sendMessage(u.telegramToken, u.telegramChatId, text)));
+    return admins.length;
+  } catch (e) {
+    console.error('Telegram notifyAdmins error:', e.message);
+    return 0;
+  }
+}
+
+module.exports = { sendMessage, getMe, detectChatId, sendAlert, notifyAdmins, escapeHtml };

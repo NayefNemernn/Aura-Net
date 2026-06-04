@@ -12,6 +12,7 @@ import AlertsPage   from './pages/AlertsPage';
 import ReportsPage   from './pages/ReportsPage';
 import SettingsPage  from './pages/SettingsPage';
 import MessagingPage      from './pages/MessagingPage';
+import ContactInboxPage   from './pages/ContactInboxPage';
 import LandingEditorPage  from './pages/LandingEditorPage';
 import AdEditorPage       from './pages/AdEditorPage';
 
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="clients"     element={<ClientsPage />} />
           <Route path="clients/:id" element={<ClientProfilePage />} />
           <Route path="alerts"      element={<AlertsPage />} />
+          <Route path="inbox"       element={<ContactInboxPage />} />
           <Route path="messaging"   element={<MessagingPage />} />
           <Route path="reports"         element={<ReportsPage />} />
           <Route path="landing-editor" element={<LandingEditorPage />} />
