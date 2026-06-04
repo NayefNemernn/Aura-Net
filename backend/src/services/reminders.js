@@ -2,6 +2,38 @@ const Client = require('../models/Client');
 const User   = require('../models/User');
 const wa     = require('./whatsapp');
 
+// Fallbacks for users created before the messaging templates existed.
+const DEFAULTS = {
+  reminderExpired: '🔴 Dear {name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.',
+  reminderSoon:    '⚠️ Dear {name},\n\nYour internet subscription expires in *{days} days* ({expiry}). Please renew soon to stay connected.',
+  footer:          '— Aura Net',
+};
+
+const applyTemplate = (tpl, vars) =>
+  String(tpl).replace(/\{(\w+)\}/g, (_, k) => (vars[k] != null ? String(vars[k]) : ''));
+
+// Build a renewal-reminder message for one client using the owner's custom
+// templates + footer. Picks the "expired" vs "expiring soon" template based on
+// how many days remain (<= 0 days → expired).
+function buildReminderMessage(user, client) {
+  const m    = user.messaging || {};
+  const name = client.name || client.username;
+
+  let days = 2;
+  if (client.expiry) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    days = Math.max(0, Math.round((new Date(client.expiry) - today) / 864e5));
+  }
+
+  const tpl  = days <= 0
+    ? (m.reminderExpired || DEFAULTS.reminderExpired)
+    : (m.reminderSoon    || DEFAULTS.reminderSoon);
+  const body = applyTemplate(tpl, { name, expiry: client.expiry || '', days });
+
+  const footer = m.footer != null ? m.footer : DEFAULTS.footer;
+  return footer && footer.trim() ? `${body}\n\n${footer}` : body;
+}
+
 async function sendExpiryReminders() {
   const { status } = wa.getState();
   if (status !== 'ready') {
@@ -24,11 +56,7 @@ async function sendExpiryReminders() {
     });
 
     for (const c of clients) {
-      const isToday = c.expiry === today;
-      const name    = c.name || c.username;
-      const msg = isToday
-        ? `🔴 Dear ${name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.\n\n— Aura Net`
-        : `⚠️ Dear ${name},\n\nYour internet subscription expires in *2 days* (${c.expiry}). Please renew soon to stay connected.\n\n— Aura Net`;
+      const msg = buildReminderMessage(user, c);
 
       try {
         await wa.sendMessage(c.phone || c.mobile, msg);
@@ -44,4 +72,4 @@ async function sendExpiryReminders() {
   return sent;
 }
 
-module.exports = { sendExpiryReminders };
+module.exports = { sendExpiryReminders, buildReminderMessage };

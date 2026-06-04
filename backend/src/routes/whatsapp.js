@@ -3,10 +3,9 @@ const { auth, requireAdmin }  = require('../middleware/auth');
 const wa        = require('../services/whatsapp');
 const reminders = require('../services/reminders');
 const Client    = require('../models/Client');
+const User      = require('../models/User');
 
 router.use(auth, requireAdmin);
-
-const DEFAULT_TEST_MESSAGE = 'Test Reminder Message From ABBAs Nemer - Developer';
 
 // GET /api/whatsapp/status
 router.get('/status', (req, res) => {
@@ -47,7 +46,10 @@ router.post('/test-reminder', async (req, res) => {
     if (!client) return res.status(404).json({ error: 'Client not found' });
     const phone = client.phone || client.mobile;
     if (!phone) return res.status(400).json({ error: 'This client has no phone number on file' });
-    const text = (message && message.trim()) || DEFAULT_TEST_MESSAGE;
+    // Preview the client's actual custom reminder (template + footer), unless
+    // an explicit override message is provided.
+    const user = await User.findById(req.user._id);
+    const text = (message && message.trim()) || reminders.buildReminderMessage(user, client);
     await wa.sendMessage(phone, text);
     res.json({ success: true, sentTo: phone, message: text });
   } catch (e) { res.status(500).json({ error: e.message }); }

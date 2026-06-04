@@ -41,6 +41,15 @@ const UserSchema = new mongoose.Schema({
     messageTemplate: { type: String, default: 'Hello {name}, you can pay your Aura Net subscription via Whish Money:\n{link}\n\nThank you!' },
   },
 
+  // WhatsApp message customisation. Templates support {name}, {expiry}, {days}
+  // placeholders. The footer is appended to reminder messages (and optionally
+  // to composed broadcasts).
+  messaging: {
+    reminderExpired: { type: String, default: '🔴 Dear {name},\n\nYour internet subscription has expired *today*. Please contact us to renew and avoid disconnection.' },
+    reminderSoon:    { type: String, default: '⚠️ Dear {name},\n\nYour internet subscription expires in *{days} days* ({expiry}). Please renew soon to stay connected.' },
+    footer:          { type: String, default: '— Aura Net' },
+  },
+
   telegramToken:  { type: String, default: '' },
   telegramChatId: { type: String, default: '' },
   lastTelegramAt: { type: Date },   // throttle: forward alerts to Telegram at most once per hour

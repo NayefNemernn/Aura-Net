@@ -13,12 +13,20 @@ router.use(auth, requireAdmin);
 // Body: { clientIds: [...], message: "..." }
 router.post('/whatsapp/send', async (req, res) => {
   try {
-    const { clientIds, message } = req.body;
+    const { clientIds, message, appendFooter } = req.body;
     if (!message?.trim()) return res.status(400).json({ error: 'Message is required' });
     if (!clientIds?.length) return res.status(400).json({ error: 'Select at least one client' });
 
     const { status } = wa.getState();
     if (status !== 'ready') return res.status(400).json({ error: 'WhatsApp not connected' });
+
+    // Optionally append the admin's branded footer to the composed message.
+    let text = message;
+    if (appendFooter) {
+      const user   = await User.findById(req.user._id);
+      const footer = user.messaging?.footer;
+      if (footer && footer.trim()) text = `${message}\n\n${footer}`;
+    }
 
     const clients = await Client.find({
       _id: { $in: clientIds },
@@ -32,7 +40,7 @@ router.post('/whatsapp/send', async (req, res) => {
       const phone = c.phone || c.mobile;
       if (!phone) { skipped++; continue; }
       try {
-        await wa.sendMessage(phone, message);
+        await wa.sendMessage(phone, text);
         sent++;
         await new Promise(r => setTimeout(r, 1200));
       } catch (e) {
