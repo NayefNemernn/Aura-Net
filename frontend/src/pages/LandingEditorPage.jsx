@@ -131,9 +131,32 @@ function HeroTab({ content, onSave, saving }) {
       { label:'Camera Res', value:'4K UHD' },
       { label:'Uptime SLA', value:'99.9%'  },
     ]).map(s => ({ label:s.label || '', value:s.value || '' })),
+    showcase: {
+      routerImage: content.hero?.showcase?.routerImage || '',
+      routerAlt:   content.hero?.showcase?.routerAlt   || 'Aura Net Wi-Fi 6 Router',
+      specStrip: (content.hero?.showcase?.specStrip?.length ? content.hero.showcase.specStrip : [
+        { label:'Standard', value:'Wi-Fi 6' },
+        { label:'Speed',    value:'1 Gbps'  },
+        { label:'Antennas', value:'6 × Ext' },
+      ]).map(s => ({ label:s.label || '', value:s.value || '' })),
+      wifiBadge: content.hero?.showcase?.wifiBadge || 'Wi-Fi 6 · AX6000',
+      ptz:  {
+        image: content.hero?.showcase?.ptz?.image || '',
+        line1: content.hero?.showcase?.ptz?.line1 || 'PTZ · 4K',
+        line2: content.hero?.showcase?.ptz?.line2 || '360° Pan',
+      },
+      dome: {
+        image: content.hero?.showcase?.dome?.image || '',
+        line1: content.hero?.showcase?.dome?.line1 || 'Dome · HD',
+        line2: content.hero?.showcase?.dome?.line2 || 'Night Vision',
+      },
+    },
   });
-  const set  = (k, v) => setHero(p => ({ ...p, [k]: v }));
-  const setS = (i, k, v) => setHero(p => ({ ...p, stats: p.stats.map((s, j) => j === i ? { ...s, [k]: v } : s) }));
+  const set   = (k, v) => setHero(p => ({ ...p, [k]: v }));
+  const setS  = (i, k, v) => setHero(p => ({ ...p, stats: p.stats.map((s, j) => j === i ? { ...s, [k]: v } : s) }));
+  const setSc = (k, v) => setHero(p => ({ ...p, showcase: { ...p.showcase, [k]: v } }));
+  const setScSpec  = (i, k, v) => setHero(p => ({ ...p, showcase: { ...p.showcase, specStrip: p.showcase.specStrip.map((s, j) => j === i ? { ...s, [k]: v } : s) } }));
+  const setScBadge = (badge, k, v) => setHero(p => ({ ...p, showcase: { ...p.showcase, [badge]: { ...p.showcase[badge], [k]: v } } }));
 
   return (
     <div className="space-y-4">
@@ -177,6 +200,55 @@ function HeroTab({ content, onSave, saving }) {
             </Field>
           </Grid2>
         ))}
+      </Panel>
+
+      <Panel title="Product Showcase" desc="The router image, spec strip and badge shown on the right of the hero section.">
+        <ImageUpload label="Router Image" value={hero.showcase.routerImage}
+          onChange={v => setSc('routerImage', v)} fallback="/products/router.png" />
+        <Field label="Router Image Alt Text">
+          <Input value={hero.showcase.routerAlt} onChange={e => setSc('routerAlt', e.target.value)} placeholder="Aura Net Wi-Fi 6 Router" />
+        </Field>
+        <div>
+          <span className="font-mono text-[9px] tracking-[0.25em] text-muted-foreground uppercase block mb-2">Spec Strip (3 columns)</span>
+          <div className="space-y-1.5">
+            {hero.showcase.specStrip.map((s, i) => (
+              <Grid2 key={i}>
+                <Input value={s.label} onChange={e => setScSpec(i, 'label', e.target.value)} placeholder="Standard" />
+                <Input value={s.value} onChange={e => setScSpec(i, 'value', e.target.value)} placeholder="Wi-Fi 6" />
+              </Grid2>
+            ))}
+          </div>
+        </div>
+        <Field label="Floating Badge (over router)">
+          <Input value={hero.showcase.wifiBadge} onChange={e => setSc('wifiBadge', e.target.value)} placeholder="Wi-Fi 6 · AX6000" />
+        </Field>
+      </Panel>
+
+      <Panel title="Floating Camera Badges" desc="The two small camera cards floating over the showcase panel.">
+        <div className="space-y-3">
+          <ImageUpload label="Top Badge Image" value={hero.showcase.ptz.image}
+            onChange={v => setScBadge('ptz', 'image', v)} fallback="/products/cam-ptz.png" />
+          <Grid2>
+            <Field label="Top Badge — Line 1">
+              <Input value={hero.showcase.ptz.line1} onChange={e => setScBadge('ptz', 'line1', e.target.value)} placeholder="PTZ · 4K" />
+            </Field>
+            <Field label="Top Badge — Line 2">
+              <Input value={hero.showcase.ptz.line2} onChange={e => setScBadge('ptz', 'line2', e.target.value)} placeholder="360° Pan" />
+            </Field>
+          </Grid2>
+        </div>
+        <div className="space-y-3 pt-4 border-t border-border">
+          <ImageUpload label="Bottom Badge Image" value={hero.showcase.dome.image}
+            onChange={v => setScBadge('dome', 'image', v)} fallback="/products/cam-dome.png" />
+          <Grid2>
+            <Field label="Bottom Badge — Line 1">
+              <Input value={hero.showcase.dome.line1} onChange={e => setScBadge('dome', 'line1', e.target.value)} placeholder="Dome · HD" />
+            </Field>
+            <Field label="Bottom Badge — Line 2">
+              <Input value={hero.showcase.dome.line2} onChange={e => setScBadge('dome', 'line2', e.target.value)} placeholder="Night Vision" />
+            </Field>
+          </Grid2>
+        </div>
       </Panel>
 
       <SaveBar onSave={() => onSave({ hero })} saving={saving} />
@@ -704,6 +776,47 @@ function TextArea({ value, onChange, placeholder, rows = 3 }) {
       rows={rows}
       className="w-full bg-background border border-border rounded-sm px-3 py-2.5 font-mono text-xs text-foreground placeholder-muted-foreground/30 outline-none focus:border-primary transition-colors resize-none"
     />
+  );
+}
+
+function ImageUpload({ label, value, onChange, fallback }) {
+  const ref = useRef(null);
+  const [busy, setBusy] = useState(false);
+  const src = value
+    ? (value.startsWith('http') || value.startsWith('data:') ? value
+        : value.startsWith('/uploads') ? `${BACKEND}${value}` : value)
+    : fallback;
+
+  const upload = async (file) => {
+    setBusy(true);
+    const form = new FormData(); form.append('image', file);
+    try {
+      const { data } = await api.post('/api/landing/upload', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      onChange(data.url);
+    } catch (e) { alert(e.response?.data?.error || e.message); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <div>
+      {label && <label className="block font-mono text-[9px] tracking-[0.25em] text-muted-foreground uppercase mb-1.5">{label}</label>}
+      <div className="flex items-center gap-3">
+        <div className="w-16 h-16 rounded-sm border border-border bg-secondary/40 flex items-center justify-center overflow-hidden flex-shrink-0">
+          {src ? <img src={src} alt="" className="w-full h-full object-contain" /> : <span className="text-muted-foreground text-base">—</span>}
+        </div>
+        <div className="flex flex-col gap-1.5 items-start">
+          <button onClick={() => ref.current?.click()} disabled={busy}
+            className="px-3 py-1.5 border border-border text-muted-foreground font-mono text-[10px] tracking-[0.15em] uppercase rounded-sm hover:border-primary hover:text-primary transition-colors disabled:opacity-50">
+            {busy ? 'Uploading…' : value ? 'Replace Image' : 'Upload Image'}
+          </button>
+          {value && (
+            <button onClick={() => onChange('')} className="font-mono text-[10px] text-red-400 hover:underline">Reset to default</button>
+          )}
+        </div>
+        <input ref={ref} type="file" accept="image/*" className="hidden"
+          onChange={e => { if (e.target.files[0]) upload(e.target.files[0]); e.target.value=''; }} />
+      </div>
+    </div>
   );
 }
 

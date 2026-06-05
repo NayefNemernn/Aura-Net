@@ -1,4 +1,4 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
 const path   = require('path');
 
@@ -72,14 +72,30 @@ async function disconnect() {
   waQR = null;
 }
 
-// phone: raw string from BMS (digits only after stripping)
-// Defaults to Lebanon country code 961 if no country code present
-async function sendMessage(phone, text) {
-  if (waStatus !== 'ready') throw new Error('WhatsApp not connected');
+// Normalise a raw phone string to a WhatsApp chat id.
+// Defaults to Lebanon country code 961 if no country code present.
+function chatId(phone) {
   const digits = phone.replace(/\D/g, '');
   if (digits.length < 7) throw new Error(`Invalid phone: ${phone}`);
   const withCC = digits.startsWith('961') || digits.length > 10 ? digits : `961${digits}`;
-  await waClient.sendMessage(`${withCC}@c.us`, text);
+  return `${withCC}@c.us`;
 }
 
-module.exports = { initialize, disconnect, getState, sendMessage };
+async function sendMessage(phone, text) {
+  if (waStatus !== 'ready') throw new Error('WhatsApp not connected');
+  await waClient.sendMessage(chatId(phone), text);
+}
+
+// Send media (base64, no data-URL prefix) with an optional text caption.
+async function sendMedia(phone, { mimetype, base64, filename }, caption) {
+  if (waStatus !== 'ready') throw new Error('WhatsApp not connected');
+  const media = new MessageMedia(mimetype, base64, filename);
+  await waClient.sendMessage(chatId(phone), media, caption ? { caption } : {});
+}
+
+const sendImage    = (phone, base64, caption) =>
+  sendMedia(phone, { mimetype: 'image/png', base64, filename: 'website-qr.png' }, caption);
+const sendDocument = (phone, base64, mimetype, filename, caption) =>
+  sendMedia(phone, { mimetype, base64, filename }, caption);
+
+module.exports = { initialize, disconnect, getState, sendMessage, sendImage, sendDocument };

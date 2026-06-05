@@ -18,6 +18,9 @@ const UserSchema = new mongoose.Schema({
 
   syncInterval: { type: Number, default: 60 }, // minutes
 
+  // Public website URL — encoded in the shareable "Website QR Code" (Settings)
+  siteUrl: { type: String, default: '' },
+
   alertRules: {
     inactive30:   { type: Boolean, default: true },
     statusChange: { type: Boolean, default: true },

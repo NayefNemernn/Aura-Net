@@ -2,6 +2,17 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowDown, Zap, Shield, Wifi } from 'lucide-react';
 
+const BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Uploaded images live under /uploads (served by the backend); bundled defaults
+// and absolute URLs are used as-is.
+const resolveImg = (url, fallback) => {
+  if (!url) return fallback;
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  if (url.startsWith('/uploads')) return `${BACKEND}${url}`;
+  return url;
+};
+
 export default function HeroSection({ content }) {
   const scrollTo = (id) => document.querySelector(id)?.scrollIntoView({ behavior: 'smooth' });
 
@@ -22,6 +33,29 @@ export default function HeroSection({ content }) {
     { value: '4K UHD', label: 'Camera Res' },
     { value: '99.9%',  label: 'Uptime SLA' },
   ]).map((s, i) => ({ icon: statIcons[i % statIcons.length], value: s.value, label: s.label }));
+
+  // Right-side product showcase panel (router + camera badges + spec strip).
+  const sc = h.showcase || {};
+  const showcase = {
+    routerImage: resolveImg(sc.routerImage, '/products/router.png'),
+    routerAlt:   sc.routerAlt || 'Aura Net Wi-Fi 6 Router',
+    specStrip:   sc.specStrip?.length ? sc.specStrip : [
+      { label: 'Standard', value: 'Wi-Fi 6' },
+      { label: 'Speed',    value: '1 Gbps'  },
+      { label: 'Antennas', value: '6 × Ext' },
+    ],
+    wifiBadge:   sc.wifiBadge || 'Wi-Fi 6 · AX6000',
+    ptz:  {
+      image: resolveImg(sc.ptz?.image, '/products/cam-ptz.png'),
+      line1: sc.ptz?.line1 || 'PTZ · 4K',
+      line2: sc.ptz?.line2 || '360° Pan',
+    },
+    dome: {
+      image: resolveImg(sc.dome?.image, '/products/cam-dome.png'),
+      line1: sc.dome?.line1 || 'Dome · HD',
+      line2: sc.dome?.line2 || 'Night Vision',
+    },
+  };
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden blueprint-grid">
@@ -127,8 +161,8 @@ export default function HeroSection({ content }) {
 
                   {/* Router photo — natural colors on cream background */}
                   <img
-                    src="/products/router.png"
-                    alt="Aura Net Wi-Fi 6 Router"
+                    src={showcase.routerImage}
+                    alt={showcase.routerAlt}
                     className="w-full max-w-sm mx-auto block"
                     style={{ filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.18))' }}
                   />
@@ -137,12 +171,8 @@ export default function HeroSection({ content }) {
                 {/* Dark spec strip at the bottom */}
                 <div className="flex items-center justify-between px-5 py-3"
                   style={{ background: 'rgb(var(--bg))', borderTop: '1px solid rgb(var(--border) / 0.2)' }}>
-                  {[
-                    { label: 'Standard', value: 'Wi-Fi 6' },
-                    { label: 'Speed',    value: '1 Gbps'  },
-                    { label: 'Antennas', value: '6 × Ext' },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="text-center">
+                  {showcase.specStrip.map(({ label, value }, i) => (
+                    <div key={i} className="text-center">
                       <div className="font-mono text-[8px] text-muted-foreground uppercase tracking-wider">{label}</div>
                       <div className="font-mono text-xs text-primary font-semibold mt-0.5">{value}</div>
                     </div>
@@ -166,11 +196,11 @@ export default function HeroSection({ content }) {
                 style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
               >
                 <div className="w-10 h-10 rounded-sm flex items-center justify-center overflow-hidden" style={{ background:'#f0ece4' }}>
-                  <img src="/products/cam-ptz.png" alt="PTZ Camera" className="w-9 h-9 object-contain" />
+                  <img src={showcase.ptz.image} alt={showcase.ptz.line1} className="w-9 h-9 object-contain" />
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] text-primary tracking-wider uppercase">PTZ · 4K</div>
-                  <div className="font-mono text-[9px] text-muted-foreground">360° Pan</div>
+                  <div className="font-mono text-[9px] text-primary tracking-wider uppercase">{showcase.ptz.line1}</div>
+                  <div className="font-mono text-[9px] text-muted-foreground">{showcase.ptz.line2}</div>
                 </div>
               </motion.div>
 
@@ -183,11 +213,11 @@ export default function HeroSection({ content }) {
                 style={{ boxShadow: '0 8px 24px rgba(0,0,0,0.6)' }}
               >
                 <div className="w-10 h-10 rounded-sm flex items-center justify-center overflow-hidden" style={{ background:'#f0ece4' }}>
-                  <img src="/products/cam-dome.png" alt="Dome Camera" className="w-9 h-9 object-contain" />
+                  <img src={showcase.dome.image} alt={showcase.dome.line1} className="w-9 h-9 object-contain" />
                 </div>
                 <div>
-                  <div className="font-mono text-[9px] text-primary tracking-wider uppercase">Dome · HD</div>
-                  <div className="font-mono text-[9px] text-muted-foreground">Night Vision</div>
+                  <div className="font-mono text-[9px] text-primary tracking-wider uppercase">{showcase.dome.line1}</div>
+                  <div className="font-mono text-[9px] text-muted-foreground">{showcase.dome.line2}</div>
                 </div>
               </motion.div>
 
@@ -198,7 +228,7 @@ export default function HeroSection({ content }) {
                 transition={{ delay: 1.6, duration: 0.5 }}
                 className="absolute top-1/2 -right-2 lg:right-0 -translate-y-1/2 bg-card/90 backdrop-blur-sm border border-border rounded-sm px-3 py-1.5"
               >
-                <span className="font-mono text-[10px] text-primary tracking-wider">Wi-Fi 6 · AX6000</span>
+                <span className="font-mono text-[10px] text-primary tracking-wider">{showcase.wifiBadge}</span>
               </motion.div>
             </motion.div>
           </div>

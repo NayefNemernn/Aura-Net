@@ -71,6 +71,13 @@ router.put('/', auth, requireAdmin, async (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// POST /api/landing/upload — generic image upload (hero showcase, etc.)
+// Returns the stored URL; the caller saves it into content via PUT /api/landing.
+router.post('/upload', auth, requireAdmin, upload.single('image'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid type' });
+  res.json({ success: true, url: `/uploads/landing/${req.file.filename}` });
+});
+
 // ── Admin — media ──────────────────────────────────────────────────
 // POST /api/landing/media/youtube
 router.post('/media/youtube', auth, requireAdmin, async (req, res) => {

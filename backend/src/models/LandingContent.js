@@ -70,6 +70,29 @@ const s = new mongoose.Schema({
       { label: 'Camera Res', value: '4K UHD' },
       { label: 'Uptime SLA', value: '99.9%'  },
     ]},
+
+    // Right-side product showcase panel. Image fields are '' by default so the
+    // component falls back to its bundled /products/*.png assets.
+    showcase: {
+      routerImage: { type: String, default: '' },
+      routerAlt:   { type: String, default: 'Aura Net Wi-Fi 6 Router' },
+      specStrip: { type: [cameraSpec], default: [
+        { label: 'Standard', value: 'Wi-Fi 6' },
+        { label: 'Speed',    value: '1 Gbps'  },
+        { label: 'Antennas', value: '6 × Ext' },
+      ]},
+      wifiBadge: { type: String, default: 'Wi-Fi 6 · AX6000' },
+      ptz:  {
+        image: { type: String, default: '' },
+        line1: { type: String, default: 'PTZ · 4K'  },
+        line2: { type: String, default: '360° Pan'  },
+      },
+      dome: {
+        image: { type: String, default: '' },
+        line1: { type: String, default: 'Dome · HD'    },
+        line2: { type: String, default: 'Night Vision' },
+      },
+    },
   },
 
   offers: { type: [offerItem], default: [

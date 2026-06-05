@@ -15,7 +15,14 @@ export default function SettingsPage() {
   const [waSending, setWaSending] = useState(false);
   const [waMsg,    setWaMsg]    = useState('');
   const [whishQr,  setWhishQr]  = useState(null);
+  const [siteQr,   setSiteQr]   = useState(null);
+  const [qrPhone,  setQrPhone]  = useState('');
+  const [qrFormat, setQrFormat] = useState('image');
+  const [qrSending,setQrSending]= useState(false);
+  const [qrMsg,    setQrMsg]    = useState('');
   const waInterval = useRef(null);
+
+  const effectiveSiteUrl = (settings?.siteUrl?.trim()) || (typeof window !== 'undefined' ? `${window.location.origin}/home` : '');
 
   const loadWhishQr = useCallback(() => {
     api.get('/api/payments/whish').then(r => setWhishQr(r.data.qr)).catch(() => {});
@@ -25,6 +32,43 @@ export default function SettingsPage() {
     api.get('/api/settings').then(r => setSettings(r.data.settings)).finally(() => setLoading(false));
     loadWhishQr();
   }, [loadWhishQr]);
+
+  // Refresh the website QR preview whenever the site URL changes (debounced).
+  useEffect(() => {
+    if (!effectiveSiteUrl) return;
+    const t = setTimeout(() => {
+      api.get('/api/website/qr', { params: { url: effectiveSiteUrl } })
+        .then(r => setSiteQr(r.data.qr)).catch(() => {});
+    }, 300);
+    return () => clearTimeout(t);
+  }, [effectiveSiteUrl]);
+
+  const downloadSitePng = () => {
+    if (!siteQr) return;
+    const a = document.createElement('a');
+    a.href = siteQr; a.download = 'website-qr.png'; a.click();
+  };
+
+  const downloadSitePdf = async () => {
+    try {
+      const res = await api.get('/api/website/qr.pdf', { params: { url: effectiveSiteUrl }, responseType: 'blob' });
+      const blobUrl = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = blobUrl; a.download = 'website-qr.pdf'; a.click();
+      URL.revokeObjectURL(blobUrl);
+    } catch (e) { setQrMsg(e.response?.data?.error || e.message); setTimeout(() => setQrMsg(''), 5000); }
+  };
+
+  const sendSiteQr = async () => {
+    if (!qrPhone.trim()) { setQrMsg('Enter a phone number'); setTimeout(() => setQrMsg(''), 4000); return; }
+    setQrSending(true); setQrMsg('');
+    try {
+      await api.post('/api/website/qr/send', { phone: qrPhone, format: qrFormat, url: effectiveSiteUrl });
+      setQrMsg(`Sent as ${qrFormat === 'pdf' ? 'PDF' : 'image'} to ${qrPhone}`);
+      setQrPhone('');
+    } catch (e) { setQrMsg(e.response?.data?.error || e.message); }
+    finally { setQrSending(false); setTimeout(() => setQrMsg(''), 5000); }
+  };
 
   const pollWa = useCallback(() => {
     api.get('/api/whatsapp/status').then(r => setWa(r.data)).catch(() => {});
@@ -232,6 +276,48 @@ export default function SettingsPage() {
         ) : (
           <p className="text-xs text-ms-dim">Add a pay link or number above and <b>Save Settings</b> to generate the QR.</p>
         )}
+      </Section>
+
+      {/* Website QR Code */}
+      <Section title="Website QR Code" desc="A scannable QR for your public website. Share it with clients, or send it straight to their WhatsApp as an image or a PDF card.">
+        <Field label="Website URL">
+          <input className="ms-input" value={settings.siteUrl || ''} onChange={e => set('siteUrl', e.target.value)}
+            placeholder={effectiveSiteUrl} />
+          <p className="text-[11px] text-ms-dim mt-1">The address the QR opens. Leave blank to use this dashboard's <code>/home</code> page.</p>
+        </Field>
+
+        {siteQr && (
+          <div className="flex flex-col items-center gap-3 py-2">
+            <img src={siteQr} alt="Website QR" className="w-44 h-44 rounded-lg border border-ms-border bg-white p-1.5" />
+            <div className="flex gap-2">
+              <button onClick={downloadSitePng} className="ms-btn-outline text-xs px-3 py-1.5">⬇ Image (PNG)</button>
+              <button onClick={downloadSitePdf} className="ms-btn-outline text-xs px-3 py-1.5">⬇ PDF</button>
+            </div>
+          </div>
+        )}
+
+        {/* Send to WhatsApp */}
+        <div className="border-t border-ms-border pt-3 mt-1">
+          <label className="block text-xs text-ms-dim font-semibold uppercase tracking-wider mb-1.5">Send to a client on WhatsApp</label>
+          {wa.status !== 'ready' && (
+            <p className="text-[11px] text-ms-orange mb-2">Connect WhatsApp above to send.</p>
+          )}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input className="ms-input flex-1" value={qrPhone} onChange={e => setQrPhone(e.target.value)}
+              placeholder="Client phone e.g. 71 234 567" />
+            <select className="ms-input sm:w-32" value={qrFormat} onChange={e => setQrFormat(e.target.value)}>
+              <option value="image">As Image</option>
+              <option value="pdf">As PDF</option>
+            </select>
+            <button onClick={sendSiteQr} disabled={qrSending || wa.status !== 'ready'}
+              className="ms-btn text-xs px-4 py-1.5 flex items-center justify-center gap-2 disabled:opacity-50">
+              {qrSending
+                ? <><span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />Sending…</>
+                : '📱 Send'}
+            </button>
+          </div>
+          {qrMsg && <span className="block text-sm text-ms-sub mt-2">{qrMsg}</span>}
+        </div>
       </Section>
 
       {/* Save */}
