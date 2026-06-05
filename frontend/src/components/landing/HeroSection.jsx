@@ -16,6 +16,13 @@ export default function HeroSection({ content }) {
     cta2:     h.cta2     || 'Security Systems',
   };
 
+  const statIcons = [Zap, Shield, Wifi];
+  const stats = (h.stats?.length ? h.stats : [
+    { value: '1 Gbps', label: 'Max Speed' },
+    { value: '4K UHD', label: 'Camera Res' },
+    { value: '99.9%',  label: 'Uptime SLA' },
+  ]).map((s, i) => ({ icon: statIcons[i % statIcons.length], value: s.value, label: s.label }));
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden blueprint-grid">
       {/* Ambient glow */}
@@ -75,12 +82,8 @@ export default function HeroSection({ content }) {
 
               {/* Stats */}
               <div className="flex flex-wrap gap-8 mt-12 pt-8 border-t border-border">
-                {[
-                  { icon: Zap,    value: '1 Gbps',  label: 'Max Speed' },
-                  { icon: Shield, value: '4K UHD',  label: 'Camera Res' },
-                  { icon: Wifi,   value: '99.9%',   label: 'Uptime SLA' },
-                ].map(({ icon: Icon, value, label }) => (
-                  <div key={label} className="flex items-start gap-3">
+                {stats.map(({ icon: Icon, value, label }, i) => (
+                  <div key={i} className="flex items-start gap-3">
                     <Icon className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                     <div>
                       <div className="font-mono font-bold text-sm text-foreground">{value}</div>

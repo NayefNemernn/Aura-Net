@@ -44,18 +44,8 @@ export default function PackageCard({ pkg, index, isPopular }) {
           <span className="text-muted-foreground text-sm font-mono">/mo</span>
         </div>
 
-        {/* Specs */}
-        <div className="grid grid-cols-2 gap-3 mb-6 py-4 border-y border-border">
-          {pkg.specs.map((s) => (
-            <div key={s.label}>
-              <div className="font-mono text-[10px] text-muted-foreground uppercase tracking-wider">{s.label}</div>
-              <div className="font-mono text-xs font-semibold text-foreground mt-0.5">{s.value}</div>
-            </div>
-          ))}
-        </div>
-
         {/* Features */}
-        <ul className="space-y-3 mb-8">
+        <ul className="space-y-3 mb-8 pt-4 border-t border-border">
           {pkg.features.map((f) => (
             <li key={f} className="flex items-start gap-2.5">
               <Check className="w-3.5 h-3.5 text-primary shrink-0 mt-0.5" />

@@ -126,8 +126,14 @@ function HeroTab({ content, onSave, saving }) {
     subtitle: content.hero?.subtitle || '',
     cta1:     content.hero?.cta1     || 'View Packages',
     cta2:     content.hero?.cta2     || 'Security Systems',
+    stats:    (content.hero?.stats?.length ? content.hero.stats : [
+      { label:'Max Speed',  value:'1 Gbps' },
+      { label:'Camera Res', value:'4K UHD' },
+      { label:'Uptime SLA', value:'99.9%'  },
+    ]).map(s => ({ label:s.label || '', value:s.value || '' })),
   });
-  const set = (k, v) => setHero(p => ({ ...p, [k]: v }));
+  const set  = (k, v) => setHero(p => ({ ...p, [k]: v }));
+  const setS = (i, k, v) => setHero(p => ({ ...p, stats: p.stats.map((s, j) => j === i ? { ...s, [k]: v } : s) }));
 
   return (
     <div className="space-y-4">
@@ -159,6 +165,20 @@ function HeroTab({ content, onSave, saving }) {
           </Field>
         </Grid2>
       </Panel>
+
+      <Panel title="Stats Bar" desc="The three highlighted stats shown beneath the buttons in the hero section.">
+        {hero.stats.map((s, i) => (
+          <Grid2 key={i}>
+            <Field label={`Stat ${i+1} Value`}>
+              <Input value={s.value} onChange={e => setS(i, 'value', e.target.value)} placeholder="1 Gbps" />
+            </Field>
+            <Field label={`Stat ${i+1} Label`}>
+              <Input value={s.label} onChange={e => setS(i, 'label', e.target.value)} placeholder="Max Speed" />
+            </Field>
+          </Grid2>
+        ))}
+      </Panel>
+
       <SaveBar onSave={() => onSave({ hero })} saving={saving} />
     </div>
   );

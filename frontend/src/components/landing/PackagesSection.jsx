@@ -12,12 +12,6 @@ const packages = [
     price: '29',
     routerImage: ROUTER_IMG,
     routerName: 'Wi-Fi 6 Dual-Band',
-    specs: [
-      { label: 'Download', value: '50 Mbps' },
-      { label: 'Upload',   value: '25 Mbps' },
-      { label: 'Latency',  value: '<8ms' },
-      { label: 'Cable',    value: 'Cat5e' },
-    ],
     features: [
       'Wi-Fi 6 router included',
       'Static IP address',
@@ -33,12 +27,6 @@ const packages = [
     price: '49',
     routerImage: ROUTER_IMG,
     routerName: 'Wi-Fi 6 Tri-Band',
-    specs: [
-      { label: 'Download', value: '100 Mbps' },
-      { label: 'Upload',   value: '50 Mbps' },
-      { label: 'Latency',  value: '<5ms' },
-      { label: 'Cable',    value: 'Cat6' },
-    ],
     features: [
       'Wi-Fi 6 tri-band router included',
       'Dual static IP addresses',
@@ -55,12 +43,6 @@ const packages = [
     price: '89',
     routerImage: ROUTER_IMG,
     routerName: 'Enterprise 6-Antenna',
-    specs: [
-      { label: 'Download', value: '1 Gbps' },
-      { label: 'Upload',   value: '1 Gbps' },
-      { label: 'Latency',  value: '<3ms' },
-      { label: 'Cable',    value: 'Cat6a' },
-    ],
     features: [
       'Enterprise router + PoE switch',
       'Block of 5 static IPs',
@@ -73,18 +55,11 @@ const packages = [
   },
 ];
 
-const SPECS_MAP = [
-  [{ label:'Download', value:'50 Mbps' }, { label:'Upload', value:'25 Mbps' }, { label:'Latency', value:'<8ms' }, { label:'Cable', value:'Cat5e' }],
-  [{ label:'Download', value:'100 Mbps'}, { label:'Upload', value:'50 Mbps' }, { label:'Latency', value:'<5ms' }, { label:'Cable', value:'Cat6'  }],
-  [{ label:'Download', value:'1 Gbps'  }, { label:'Upload', value:'1 Gbps'  }, { label:'Latency', value:'<3ms' }, { label:'Cable', value:'Cat6a' }],
-];
-
 export default function PackagesSection({ content }) {
   const raw = content?.packages?.length ? content.packages : packages;
-  const pkgs = raw.map((p, i) => ({
+  const pkgs = raw.map((p) => ({
     ...p,
     routerImage: ROUTER_IMG,
-    specs: p.specs || SPECS_MAP[i] || SPECS_MAP[0],
   }));
 
   const title = content?.sectionTitles?.packages || 'Choose Your Bandwidth';

@@ -65,6 +65,11 @@ const s = new mongoose.Schema({
     subtitle: { type: String, default: 'We build quiet, reliable networks — fiber routers, HD cameras, Wi‑Fi coverage and UPS backup — for people who notice the details.' },
     cta1:     { type: String, default: 'View Packages' },
     cta2:     { type: String, default: 'Security Systems' },
+    stats: { type: [cameraSpec], default: [
+      { label: 'Max Speed',  value: '1 Gbps' },
+      { label: 'Camera Res', value: '4K UHD' },
+      { label: 'Uptime SLA', value: '99.9%'  },
+    ]},
   },
 
   offers: { type: [offerItem], default: [
