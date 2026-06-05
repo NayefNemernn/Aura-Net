@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import Switch from '../components/ui/Switch';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -279,10 +280,5 @@ function Field({ label, children }) {
 }
 
 function Toggle({ checked, onChange }) {
-  return (
-    <button onClick={() => onChange(!checked)}
-      className={`w-9 h-5 rounded-full transition-colors relative flex-shrink-0 ${checked ? 'bg-ms-blue' : 'bg-ms-border'}`}>
-      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow ${checked ? 'translate-x-4' : 'translate-x-0.5'}`} />
-    </button>
-  );
+  return <Switch checked={checked} onChange={onChange} size={13} className="flex-shrink-0" />;
 }

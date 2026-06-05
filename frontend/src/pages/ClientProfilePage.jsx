@@ -5,6 +5,7 @@ import {
   StatusBadge, isExpired, isExpiringSoon,
   BmsActionsPanel, EditUserSheet,
 } from '../components/clients/ClientShared';
+import PaidDial from '../components/ui/PaidDial';
 
 // Fields the admin may edit (must match EDITABLE_FIELDS on the backend)
 const EDITABLE = new Set([
@@ -101,10 +102,10 @@ export default function ClientProfilePage() {
         </div>
         <div className="flex items-center gap-2 flex-wrap justify-end">
           <StatusBadge status={c.status} />
-          <button onClick={() => toggle('paid')}
-            className={`text-[11px] font-semibold px-2 py-1 rounded border ${c.paid ? 'bg-ms-green/20 text-ms-green border-ms-green/40' : 'bg-white/10 text-white/60 border-white/20'}`}>
-            {c.paid ? '✓ Paid' : 'Unpaid'}
-          </button>
+          <div className="flex flex-col items-center gap-0.5">
+            <PaidDial checked={c.paid} onChange={() => toggle('paid')} size={36} />
+            <span className="text-[9px] text-white/50">{c.paid ? 'Paid' : 'Unpaid'}</span>
+          </div>
           <button onClick={() => toggle('reminders')}
             className={`text-[11px] font-semibold px-2 py-1 rounded border ${c.remindersEnabled !== false ? 'bg-ms-blue/20 text-ms-blue border-ms-blue/40' : 'bg-white/10 text-white/60 border-white/20'}`}>
             {c.remindersEnabled !== false ? '📱 WA ON' : '📵 WA OFF'}

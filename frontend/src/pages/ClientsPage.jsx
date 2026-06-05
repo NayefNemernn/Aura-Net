@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { StatusBadge, Sheet, isExpired, isExpiringSoon } from '../components/clients/ClientShared';
+import PaidDial from '../components/ui/PaidDial';
 
 const STATUS_FILTERS = ['all','online','active','inactive','expired','pending'];
 
@@ -161,7 +162,7 @@ export default function ClientsPage() {
                   {/* Quick toggles */}
                   <div className="flex flex-col gap-2 flex-shrink-0 items-center">
                     <button onClick={e => togglePaid(e, c)} className="flex flex-col items-center gap-0.5">
-                      <MiniToggle on={c.paid} color="bg-ms-green" />
+                      <PaidDial checked={c.paid} size={34} />
                       <span className="text-[9px] text-ms-dim">Paid</span>
                     </button>
                     <button onClick={e => toggleReminder(e, c)} className="flex flex-col items-center gap-0.5">
@@ -198,7 +199,7 @@ export default function ClientsPage() {
                         <td className="px-3 py-2 text-ms-blue font-medium whitespace-nowrap max-w-[140px] truncate cursor-pointer hover:underline" onClick={() => openProfile(c)}>{c.name||c.username||'—'}</td>
                         <td className="px-3 py-2 text-ms-sub font-mono whitespace-nowrap">{c.username}</td>
                         <td className="px-3 py-2 whitespace-nowrap"><StatusBadge status={c.status} /></td>
-                        <td className="px-3 py-2 whitespace-nowrap cursor-pointer" onClick={e => togglePaid(e, c)}><Toggle on={c.paid} onColor="bg-ms-green" /></td>
+                        <td className="px-3 py-2 whitespace-nowrap cursor-pointer" onClick={e => togglePaid(e, c)}><PaidDial checked={c.paid} size={28} /></td>
                         <td className="px-3 py-2 whitespace-nowrap cursor-pointer" onClick={e => toggleReminder(e, c)}><Toggle on={c.remindersEnabled !== false} onColor="bg-ms-blue" /></td>
                         <td className="px-3 py-2 text-ms-sub whitespace-nowrap">{c.uptime||'—'}</td>
                         <td className="px-3 py-2 text-ms-sub font-mono whitespace-nowrap">{c.ipAddress||'—'}</td>

@@ -99,6 +99,203 @@ html.light {
   .font-serif { font-family: 'Cormorant Garamond', Georgia, serif; }
 }
 
+/* ─── Animated 3D OFF/ON toggle switch (components/ui/Switch.jsx) ──── */
+.switch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  width: 5em;
+  height: 2.5em;
+  user-select: none;
+}
+
+/* Static switches let clicks pass through to a parent that owns the toggle */
+.switch--static { pointer-events: none; }
+
+/* Hide default HTML checkbox */
+.switch .cb {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.switch .toggle {
+  position: absolute;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  background-color: #373737;
+  border-radius: 0.1em;
+  transition: 0.4s;
+  text-transform: uppercase;
+  font-weight: 700;
+  overflow: hidden;
+  box-shadow: -0.3em 0 0 0 #373737, -0.3em 0.3em 0 0 #373737,
+    0.3em 0 0 0 #373737, 0.3em 0.3em 0 0 #373737, 0 0.3em 0 0 #373737;
+}
+
+.switch .toggle > .left {
+  position: absolute;
+  display: flex;
+  width: 50%;
+  height: 88%;
+  background-color: #f3f3f3;
+  color: #373737;
+  left: 0;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  transform-origin: right;
+  transform: rotateX(10deg);
+  transform-style: preserve-3d;
+  transition: all 150ms;
+}
+
+.switch .toggle > .left::before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(206, 206, 206);
+  transform-origin: center left;
+  transform: rotateY(90deg);
+}
+
+.switch .toggle > .left::after {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(112, 112, 112);
+  transform-origin: center bottom;
+  transform: rotateX(90deg);
+}
+
+.switch .toggle > .right {
+  position: absolute;
+  display: flex;
+  width: 50%;
+  height: 88%;
+  background-color: #f3f3f3;
+  color: rgb(206, 206, 206);
+  right: 1px;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  transform-origin: left;
+  transform: rotateX(10deg) rotateY(-45deg);
+  transform-style: preserve-3d;
+  transition: all 150ms;
+}
+
+.switch .toggle > .right::before {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(206, 206, 206);
+  transform-origin: center right;
+  transform: rotateY(-90deg);
+}
+
+.switch .toggle > .right::after {
+  position: absolute;
+  content: "";
+  width: 100%;
+  height: 100%;
+  background-color: rgb(112, 112, 112);
+  transform-origin: center bottom;
+  transform: rotateX(90deg);
+}
+
+.switch .cb:checked + .toggle > .left {
+  transform: rotateX(10deg) rotateY(45deg);
+  color: rgb(206, 206, 206);
+}
+
+.switch .cb:checked + .toggle > .right {
+  transform: rotateX(10deg) rotateY(0deg);
+  color: #487bdb;
+}
+
+/* ─── Neumorphic round $ dial toggle (components/ui/PaidDial.jsx) ──── */
+.dial {
+  width: 7em;
+  height: 7em;
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  font-size: 4.3px; /* default; overridden inline via the `size` prop */
+}
+
+/* Static dials let clicks pass through to a parent that owns the toggle */
+.dial--static { pointer-events: none; }
+
+.dial .cb { display: none; }
+
+.dial .button {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 0.25em solid #090909;
+  background-color: transparent;
+  background-image: linear-gradient(145deg, #171717, #444245);
+  box-sizing: border-box;
+  box-shadow: inset 0.125em 0.125em 0 #7d7c7e, inset -0.125em -0.125em 0px #1c1c1c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dial .button::before {
+  position: absolute;
+  content: "";
+  width: 7.25em;
+  height: 7.25em;
+  border-radius: inherit;
+  background-color: transparent;
+  background-image: linear-gradient(145deg, #262626, #606060);
+  z-index: -1;
+  box-shadow: 0.7em 0.7em 1.4em #141414, -0.7em -0.7em 1.4em #525252;
+}
+
+.dial .icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 800;
+  font-size: 3.4em;
+  line-height: 1;
+  color: #a5a5a5;
+}
+
+.dial .cb:checked + .button {
+  background-image: linear-gradient(145deg, #16a34a, #4ade80);
+  box-shadow: inset 0.125em 0.125em 0 #86efac, inset -0.125em -0.125em 0 #15803d,
+    0 0 0.9em rgba(74, 222, 128, 0.85);
+  border: 0.25em solid #22c55e;
+  animation: dialBorder 0.5s linear alternate-reverse infinite;
+}
+
+.dial .cb:checked + .button .icon {
+  color: #ffffff;
+  text-shadow: 0 0 0.2em rgba(255, 255, 255, 0.7);
+  animation: dialFill 0.5s linear alternate-reverse infinite;
+}
+
+@keyframes dialFill {
+  to { color: #eafff1; }
+}
+
+@keyframes dialBorder {
+  to { border-color: #4ade80; }
+}
+
 /* ─── Light mode specific tweaks ──────────────────────────────────── */
 html.light .ms-btn { color: #ffffff; }
 

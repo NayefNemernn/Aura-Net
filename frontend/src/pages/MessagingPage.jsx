@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import api from '../services/api';
+import Switch from '../components/ui/Switch';
 
 export default function MessagingPage() {
   const [tab, setTab] = useState('whatsapp');
@@ -257,9 +258,8 @@ function WhatsAppTab() {
                     className="ms-btn-outline text-[11px] px-2.5 py-1 disabled:opacity-40 flex-shrink-0">
                     {testingId === c._id ? '…' : 'Test'}
                   </button>
-                  <button onClick={() => toggleReminder(c)}
-                    className={`w-10 h-5 rounded-full relative flex-shrink-0 transition-colors ${c.remindersEnabled !== false ? 'bg-ms-blue' : 'bg-ms-border'}`}>
-                    <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${c.remindersEnabled !== false ? 'translate-x-5' : 'translate-x-0.5'}`} />
+                  <button onClick={() => toggleReminder(c)} className="flex-shrink-0">
+                    <Switch checked={c.remindersEnabled !== false} size={13} />
                   </button>
                 </div>
               ))
@@ -488,10 +488,12 @@ function TelegramTab() {
                 <div className="text-sm text-ms-text">{r.label}</div>
                 <div className="text-xs text-ms-dim">{r.sub}</div>
               </div>
-              <button onClick={() => setAlert(r.key, !(settings?.telegramAlerts?.[r.key] ?? true))}
-                className={`w-10 h-5 rounded-full relative flex-shrink-0 transition-colors ${(settings?.telegramAlerts?.[r.key] ?? true) ? 'bg-ms-blue' : 'bg-ms-border'}`}>
-                <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${(settings?.telegramAlerts?.[r.key] ?? true) ? 'translate-x-5' : 'translate-x-0.5'}`} />
-              </button>
+              <Switch
+                checked={settings?.telegramAlerts?.[r.key] ?? true}
+                onChange={v => setAlert(r.key, v)}
+                size={13}
+                className="flex-shrink-0"
+              />
             </div>
           ))}
         </div>

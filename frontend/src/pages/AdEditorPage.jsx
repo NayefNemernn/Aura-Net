@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import Switch from '../components/ui/Switch';
 
 const BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
@@ -111,10 +112,7 @@ export default function AdEditorPage() {
               <div className="text-sm text-ms-text font-medium">Show pop-up ad</div>
               <div className="text-[11px] text-ms-dim">Turn off to hide it from the website.</div>
             </div>
-            <button onClick={() => set('enabled', !ad.enabled)}
-              className={`w-10 h-5 rounded-full transition-colors relative flex-shrink-0 ${ad.enabled ? 'bg-ms-green' : 'bg-ms-border'}`}>
-              <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-transform shadow ${ad.enabled ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
+            <Switch checked={ad.enabled} onChange={v => set('enabled', v)} size={13} className="flex-shrink-0" />
           </div>
 
           {/* Image */}
