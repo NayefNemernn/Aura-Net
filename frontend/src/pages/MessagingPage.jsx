@@ -44,14 +44,14 @@ function WhatsAppTab() {
     api.get('/api/whatsapp/status').then(r => setWa(r.data)).catch(() => {});
   }, []);
 
+  // Load the full recipient list once; searching filters client-side so we
+  // always know the true total (needed for an honest "Select all" state).
   const loadRecipients = useCallback(async () => {
     try {
-      const p = new URLSearchParams();
-      if (search) p.set('search', search);
-      const { data } = await api.get(`/api/messaging/recipients?${p}`);
+      const { data } = await api.get('/api/messaging/recipients');
       setRecipients(data.clients);
     } catch (_) {}
-  }, [search]);
+  }, []);
 
   useEffect(() => {
     pollWa();
@@ -64,9 +64,29 @@ function WhatsAppTab() {
   const waConnect    = () => { api.post('/api/whatsapp/connect'); pollWa(); };
   const waDisconnect = () => { api.post('/api/whatsapp/disconnect').then(() => setWa({ status: 'disconnected', qr: null })); };
 
+  // Client-side search filter over the full recipient list.
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? recipients.filter(c => [c.name, c.username, c.phone, c.mobile]
+        .some(v => v && String(v).toLowerCase().includes(q)))
+    : recipients;
+
   const toggleSelect = id => setSelected(p => p.includes(id) ? p.filter(x => x !== id) : [...p, id]);
+  // "Select all" is only ticked when EVERY user is selected — never when a
+  // search has merely narrowed the visible rows to a selected subset.
   const allSelected  = recipients.length > 0 && selected.length === recipients.length;
-  const toggleAll    = () => setSelected(allSelected ? [] : recipients.map(c => c._id));
+  const visibleIds   = filtered.map(c => c._id);
+  const allVisibleSelected = visibleIds.length > 0 && visibleIds.every(id => selected.includes(id));
+  const toggleAll = () => {
+    if (q) {
+      // While searching, toggle just the visible matches (merge, don't replace).
+      setSelected(prev => allVisibleSelected
+        ? prev.filter(id => !visibleIds.includes(id))
+        : [...new Set([...prev, ...visibleIds])]);
+    } else {
+      setSelected(allSelected ? [] : recipients.map(c => c._id));
+    }
+  };
 
   const testReminder = async (c) => {
     setTestingId(c._id); setResult(null);
@@ -82,11 +102,11 @@ function WhatsAppTab() {
     setRecipients(prev => prev.map(r => r._id === c._id ? { ...r, remindersEnabled: data.remindersEnabled } : r));
   };
 
-  const allRemEnabled = recipients.length > 0 && recipients.every(c => c.remindersEnabled !== false);
+  const allRemEnabled = filtered.length > 0 && filtered.every(c => c.remindersEnabled !== false);
   const toggleAllReminders = async () => {
     const enabled = !allRemEnabled;
-    const ids = recipients.map(c => c._id);
-    setRecipients(prev => prev.map(c => ({ ...c, remindersEnabled: enabled })));
+    const ids = filtered.map(c => c._id);
+    setRecipients(prev => prev.map(c => ids.includes(c._id) ? { ...c, remindersEnabled: enabled } : c));
     try { await api.post('/api/clients/reminders/bulk', { ids, enabled }); }
     catch { loadRecipients(); }
   };
@@ -158,11 +178,11 @@ function WhatsAppTab() {
               <span className="font-semibold text-sm text-ms-text">Recipients</span>
               <div className="flex items-center gap-2 text-xs">
                 <label className="flex items-center gap-1.5 cursor-pointer text-ms-blue font-semibold">
-                  <input type="checkbox" checked={allSelected} onChange={toggleAll}
+                  <input type="checkbox" checked={q ? allVisibleSelected : allSelected} onChange={toggleAll}
                     className="w-3.5 h-3.5 accent-ms-blue" />
-                  Select all
+                  {q ? `Select ${filtered.length} shown` : 'Select all'}
                 </label>
-                <span className="text-ms-dim">· {selected.length} selected</span>
+                <span className="text-ms-blue font-semibold">· {selected.length} selected</span>
               </div>
             </div>
             <div className="px-3 py-2 border-b border-ms-border">
@@ -170,9 +190,9 @@ function WhatsAppTab() {
                 value={search} onChange={e => setSearch(e.target.value)} />
             </div>
             <div className="max-h-80 overflow-y-auto divide-y divide-ms-border">
-              {recipients.length === 0
-                ? <div className="text-center py-8 text-ms-dim text-xs">No clients with phone numbers</div>
-                : recipients.map(c => (
+              {filtered.length === 0
+                ? <div className="text-center py-8 text-ms-dim text-xs">{q ? 'No matching clients' : 'No clients with phone numbers'}</div>
+                : filtered.map(c => (
                   <label key={c._id} className="flex items-center gap-3 px-4 py-2.5 hover:bg-ms-sidebar cursor-pointer">
                     <input type="checkbox" checked={selected.includes(c._id)} onChange={() => toggleSelect(c._id)}
                       className="w-3.5 h-3.5 accent-ms-blue flex-shrink-0" />
@@ -234,7 +254,7 @@ function WhatsAppTab() {
             <label className="flex items-center gap-1.5 cursor-pointer text-ms-blue font-semibold text-xs whitespace-nowrap">
               <input type="checkbox" checked={allRemEnabled} onChange={toggleAllReminders}
                 className="w-3.5 h-3.5 accent-ms-blue" />
-              Reminders on for all
+              {q ? `Reminders on for ${filtered.length} shown` : 'Reminders on for all'}
             </label>
           </div>
           {result && (
@@ -243,9 +263,9 @@ function WhatsAppTab() {
             </div>
           )}
           <div className="divide-y divide-ms-border max-h-[500px] overflow-y-auto">
-            {recipients.length === 0
-              ? <div className="text-center py-10 text-ms-dim text-sm">No clients with phone numbers found</div>
-              : recipients.map(c => (
+            {filtered.length === 0
+              ? <div className="text-center py-10 text-ms-dim text-sm">{search.trim() ? 'No matching clients' : 'No clients with phone numbers found'}</div>
+              : filtered.map(c => (
                 <div key={c._id} className="flex items-center gap-3 px-4 py-3">
                   <div className="flex-1 min-w-0">
                     <div className="text-sm text-ms-text font-medium">{c.name || c.username}</div>
