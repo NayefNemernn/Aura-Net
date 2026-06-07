@@ -4,10 +4,13 @@ const multer  = require('multer');
 const path    = require('path');
 const fs      = require('fs');
 const { auth, requireAdmin } = require('../middleware/auth');
+const { DATA_DIR, UPLOADS_DIR } = require('../config/paths');
 const LandingContent = require('../models/LandingContent');
 
 // ── File upload setup ──────────────────────────────────────────────
-const UPLOAD_DIR = path.join(__dirname, '../../uploads/landing');
+// UPLOADS_DIR is the persistent (volume-backed) root served at URL /uploads,
+// so stored URLs of the form /uploads/landing/<file> map back to disk here.
+const UPLOAD_DIR = path.join(UPLOADS_DIR, 'landing');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const upload = multer({
@@ -127,7 +130,7 @@ router.delete('/media/:id', auth, requireAdmin, async (req, res) => {
     const item = doc.media.id(req.params.id);
     if (!item) return res.status(404).json({ error: 'Not found' });
     if (item.type === 'photo' && item.url) {
-      fs.unlink(path.join(__dirname, '../../', item.url), () => {});
+      fs.unlink(path.join(DATA_DIR, item.url), () => {});
     }
     item.deleteOne();
     // Re-order
@@ -161,7 +164,7 @@ router.post('/ad/image', auth, requireAdmin, upload.single('image'), async (req,
   const imageUrl = `/uploads/landing/${req.file.filename}`;
   try {
     const doc = await getDoc();
-    if (doc.ad.imageUrl) fs.unlink(path.join(__dirname, '../../', doc.ad.imageUrl), () => {});
+    if (doc.ad.imageUrl) fs.unlink(path.join(DATA_DIR, doc.ad.imageUrl), () => {});
     doc.ad.imageUrl  = imageUrl;
     doc.ad.updatedAt = new Date();
     await doc.save();
@@ -173,7 +176,7 @@ router.post('/ad/image', auth, requireAdmin, upload.single('image'), async (req,
 router.delete('/ad/image', auth, requireAdmin, async (req, res) => {
   try {
     const doc = await getDoc();
-    if (doc.ad.imageUrl) fs.unlink(path.join(__dirname, '../../', doc.ad.imageUrl), () => {});
+    if (doc.ad.imageUrl) fs.unlink(path.join(DATA_DIR, doc.ad.imageUrl), () => {});
     doc.ad.imageUrl  = '';
     doc.ad.updatedAt = new Date();
     await doc.save();

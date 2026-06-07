@@ -8,6 +8,7 @@ const morgan    = require('morgan');
 const rateLimit = require('express-rate-limit');
 const cron      = require('node-cron');
 
+const { UPLOADS_DIR } = require('./config/paths');
 const { connectDB } = require('./services/db');
 const scraper       = require('./services/scraper');
 const wa            = require('./services/whatsapp');
@@ -72,7 +73,7 @@ app.use('/api/website',    websiteRoutes);
 app.use('/uploads', (req, res, next) => {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   next();
-}, express.static(path.join(__dirname, '../uploads')));
+}, express.static(UPLOADS_DIR));
 
 app.get('/api/health', (req, res) => res.json({
   status: 'ok', service: 'Aura Net API', version: '1.0.0', time: new Date().toISOString()

@@ -1,6 +1,6 @@
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
-const path   = require('path');
+const { WA_AUTH_DIR } = require('../config/paths');
 
 let waClient = null;
 let waStatus = 'disconnected'; // 'disconnected' | 'qr' | 'connecting' | 'ready'
@@ -30,7 +30,7 @@ async function initialize() {
   waStatus = 'connecting';
 
   waClient = new Client({
-    authStrategy: new LocalAuth({ dataPath: path.join(__dirname, '../../data/wwebjs_auth') }),
+    authStrategy: new LocalAuth({ dataPath: WA_AUTH_DIR }),
     puppeteer: {
       headless: true,
       args: [
