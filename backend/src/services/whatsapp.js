@@ -5,13 +5,28 @@ const path   = require('path');
 let waClient = null;
 let waStatus = 'disconnected'; // 'disconnected' | 'qr' | 'connecting' | 'ready'
 let waQR     = null;
+let reconnectTimer  = null;
+let manualDisconnect = false; // set when the user clicks "Disconnect"
 
 function getState() {
   return { status: waStatus, qr: waQR };
 }
 
+// Re-initialize from the saved LocalAuth session after an unexpected drop.
+// No QR is needed unless the phone logged the session out, in which case
+// initialize() will surface a fresh QR instead of crashing.
+function scheduleReconnect(delay = 5000) {
+  if (manualDisconnect || reconnectTimer) return;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    console.log('🔄 WhatsApp auto-reconnecting…');
+    initialize();
+  }, delay);
+}
+
 async function initialize() {
   if (waClient) return;
+  manualDisconnect = false;
   waStatus = 'connecting';
 
   waClient = new Client({
@@ -48,22 +63,41 @@ async function initialize() {
     waStatus = 'disconnected';
     waQR = null;
     waClient = null;
+    scheduleReconnect();
   });
 
   waClient.on('auth_failure', () => {
     waStatus = 'disconnected';
     waQR = null;
     waClient = null;
+    scheduleReconnect();
   });
 
   waClient.initialize().catch(err => {
     console.error('WhatsApp init error:', err.message);
     waStatus = 'disconnected';
     waClient = null;
+    scheduleReconnect(15000);
   });
 }
 
+// Ensure the client is connected and ready, kicking off a session restore if
+// needed. Resolves true once 'ready', or false if it stalls / needs a QR scan.
+async function ensureReady(timeoutMs = 60000) {
+  if (waStatus === 'ready') return true;
+  initialize();
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (waStatus === 'ready') return true;
+    if (waStatus === 'qr')    return false; // needs a manual scan — don't block
+    await new Promise(r => setTimeout(r, 1000));
+  }
+  return waStatus === 'ready';
+}
+
 async function disconnect() {
+  manualDisconnect = true;
+  if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
   if (waClient) {
     try { await waClient.destroy(); } catch (_) {}
     waClient = null;
@@ -98,4 +132,4 @@ const sendImage    = (phone, base64, caption) =>
 const sendDocument = (phone, base64, mimetype, filename, caption) =>
   sendMedia(phone, { mimetype, base64, filename }, caption);
 
-module.exports = { initialize, disconnect, getState, sendMessage, sendImage, sendDocument };
+module.exports = { initialize, ensureReady, disconnect, getState, sendMessage, sendImage, sendDocument };

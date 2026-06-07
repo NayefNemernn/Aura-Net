@@ -92,6 +92,10 @@ async function boot() {
 
   connectDB();
 
+  // Restore the saved WhatsApp session on boot so the daily reminders can send
+  // without anyone manually clicking "Connect" after a restart/redeploy.
+  wa.initialize();
+
   // Initial sync 45s after boot (give DB time to settle)
   setTimeout(() => scraper.syncAll().catch(console.error), 45_000);
 

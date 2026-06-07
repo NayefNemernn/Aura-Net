@@ -35,9 +35,10 @@ function buildReminderMessage(user, client) {
 }
 
 async function sendExpiryReminders() {
-  const { status } = wa.getState();
-  if (status !== 'ready') {
-    console.log('⚠️  Reminders skipped — WhatsApp not connected');
+  // Try to restore the saved session if it dropped, rather than bailing.
+  if (wa.getState().status !== 'ready') await wa.ensureReady(60000).catch(() => {});
+  if (wa.getState().status !== 'ready') {
+    console.log('⚠️  Reminders skipped — WhatsApp not connected (scan the QR in Settings)');
     return 0;
   }
 
